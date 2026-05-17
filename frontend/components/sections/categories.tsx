@@ -2,17 +2,13 @@
 
 import Link from "next/link";
 import { ArrowUpRight } from "lucide-react";
-import { useMemo } from "react";
 
 import { useApi } from "@/hooks/useApi";
 
 import { getCategories } from "@/lib/api";
-import { FALLBACK_CATEGORIES } from "@/lib/fallbacks";
 import { cn } from "@/lib/utils";
 
 import type { Category } from "@/types";
-
-import { getCategoryVisual } from "./data";
 
 function sortCategories(categories: Category[]) {
 	return [...categories].sort((first, second) => {
@@ -20,53 +16,20 @@ function sortCategories(categories: Category[]) {
 	});
 }
 
-function CategoryVisualPlaceholder({ category }: { category: Category }) {
-	const visual = getCategoryVisual(category.imageTone);
-	const Icon = visual.icon;
+function CategoryMedia({ category }: { category: Category }) {
+	const imageSrc = category.image || "/no-image.png";
 
 	return (
-		<div
-			aria-hidden='true'
-			className={cn(
-				"relative h-48 overflow-hidden rounded-sm border border-hairline bg-gradient-to-br sm:h-52",
-				visual.gradientClassName,
-			)}>
-			<div className='absolute inset-x-6 bottom-0 h-24 rounded-t-full bg-white/35 blur-2xl' />
+		<div className='relative h-48 overflow-hidden rounded-sm border border-hairline sm:h-52'>
 			<div
-				className={cn(
-					"absolute left-5 top-5 flex size-14 items-center justify-center rounded-sm border border-white/50 text-ink shadow-control backdrop-blur",
-					visual.surfaceClassName,
-					category.imageTone === "smart" && "text-on-dark",
-				)}>
-				<Icon
-					aria-hidden='true'
-					className='h-7 w-7'
-					strokeWidth={1.6}
-				/>
-			</div>
-			<div className='absolute bottom-5 left-5 right-5 h-20 rounded-sm border border-white/55 bg-white/45 shadow-control backdrop-blur-md' />
-			<div className='absolute bottom-10 left-10 h-10 w-28 rounded-sm border border-white/70 bg-white/55 shadow-control backdrop-blur' />
-			<div className='absolute bottom-9 right-10 h-12 w-12 rounded-full border border-white/70 bg-white/50 shadow-control backdrop-blur' />
+				aria-label={category.name}
+				role='img'
+				className='absolute inset-0 bg-cover bg-center transition-transform duration-500 ease-out group-hover:scale-105'
+				style={{ backgroundImage: `url(${imageSrc})` }}
+			/>
+			<div className='absolute inset-0 bg-gradient-to-t from-ink/25 via-transparent to-transparent' />
 		</div>
 	);
-}
-
-function CategoryMedia({ category }: { category: Category }) {
-	if (category.imageUrl) {
-		return (
-			<div className='relative h-48 overflow-hidden rounded-sm border border-hairline sm:h-52'>
-				<div
-					aria-label={category.imageAlt ?? category.name}
-					role='img'
-					className='absolute inset-0 bg-cover bg-center transition-transform duration-500 ease-out group-hover:scale-105'
-					style={{ backgroundImage: `url(${category.imageUrl})` }}
-				/>
-				<div className='absolute inset-0 bg-gradient-to-t from-ink/25 via-transparent to-transparent' />
-			</div>
-		);
-	}
-
-	return <CategoryVisualPlaceholder category={category} />;
 }
 
 function CategoryCard({
@@ -137,18 +100,17 @@ export function CategoriesSection() {
 		data: categories,
 		loading,
 		error,
-		isFallback,
-	} = useApi<Category[]>(getCategories, FALLBACK_CATEGORIES);
+	} = useApi<Category[]>(getCategories);
 
-	const sortedCategories = useMemo(() => {
-		return sortCategories(categories ?? FALLBACK_CATEGORIES);
-	}, [categories]);
+	const sortedCategories = sortCategories(categories ?? []);
 
 	const statusText = loading
 		? "Загружаем категории..."
-		: isFallback || error
-			? "Показываем базовую структуру каталога."
-			: "";
+		: error
+			? "Не удалось загрузить категории."
+			: sortedCategories.length === 0
+				? "Категории пока не добавлены."
+				: "";
 
 	return (
 		<section

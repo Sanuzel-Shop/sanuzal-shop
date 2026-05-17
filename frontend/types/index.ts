@@ -4,9 +4,7 @@ export type Category = {
 	name: string;
 	description: string;
 	parentId: string | null;
-	imageTone: string;
-	imageUrl?: string;
-	imageAlt?: string;
+	image?: string | null;
 	featured: boolean;
 	sortOrder: number;
 };

@@ -4,8 +4,6 @@ import Link from "next/link";
 
 import { useApi } from "@/hooks/useApi";
 
-import { getPhoneHref } from "@/lib/contact-actions";
-import { FALLBACK_CATEGORIES, FALLBACK_CONTACTS } from "@/lib/fallbacks";
 import { getCategories, getContacts } from "@/lib/api";
 
 import type { Category, Contacts } from "@/types";
@@ -14,19 +12,21 @@ export function Footer() {
 	const {
 		data: categories,
 		loading: categoriesLoading,
-	} = useApi<Category[]>(getCategories, FALLBACK_CATEGORIES);
+	} = useApi<Category[]>(getCategories);
 
 	const {
 		data: contacts,
 		loading: contactsLoading,
-	} = useApi<Contacts>(getContacts, FALLBACK_CONTACTS);
+	} = useApi<Contacts>(getContacts);
 
 	if (categoriesLoading || contactsLoading) {
 		return <footer>Loading...</footer>;
 	}
 
-	const footerCategories = categories ?? FALLBACK_CATEGORIES;
-	const footerContacts = contacts ?? FALLBACK_CONTACTS;
+	const footerCategories = categories ?? [];
+	const phoneHref = contacts?.phone
+		? `tel:${contacts.phone.replace(/[^\d+]/g, "")}`
+		: null;
 
 	return (
 		<footer className='border-t border-hairline bg-canvas'>
@@ -35,12 +35,14 @@ export function Footer() {
 					<Link
 						href='/'
 						className='text-xl font-semibold text-ink'>
-						{footerContacts.company}
+						{contacts?.company ?? "Leppa & WenSton"}
 					</Link>
 
-					<p className='mt-4 max-w-md text-sm text-ink-muted'>
-						{footerContacts.description}
-					</p>
+					{contacts?.description ? (
+						<p className='mt-4 max-w-md text-sm text-ink-muted'>
+							{contacts.description}
+						</p>
+					) : null}
 				</div>
 
 				<div>
@@ -62,37 +64,46 @@ export function Footer() {
 					<h2 className='text-sm font-semibold text-ink'>Контакты</h2>
 
 					<div className='mt-4 flex flex-col gap-3 text-sm text-ink-muted'>
-						<div className='flex flex-wrap gap-3'>
-							{footerContacts.messengers.map((messenger) => (
-								<a
-									key={messenger.label}
-									href={messenger.href}
-									target='_blank'
-									rel='noreferrer'
-									className='rounded-full border border-hairline px-3 py-1.5 text-xs transition-all hover:border-ink hover:text-ink'>
-									{messenger.label}
-								</a>
-							))}
-						</div>
-						<a
-							href={getPhoneHref(footerContacts.phone)}
-							className='transition-colors hover:text-ink'>
-							{footerContacts.phone}
-						</a>
+						{contacts?.messengers.length ? (
+							<div className='flex flex-wrap gap-3'>
+								{contacts.messengers.map((messenger) => (
+									<a
+										key={messenger.label}
+										href={messenger.href}
+										target='_blank'
+										rel='noreferrer'
+										className='rounded-full border border-hairline px-3 py-1.5 text-xs transition-all hover:border-ink hover:text-ink'>
+										{messenger.label}
+									</a>
+								))}
+							</div>
+						) : null}
 
-						<a
-							href={`mailto:${footerContacts.email}`}
-							className='transition-colors hover:text-ink'>
-							{footerContacts.email}
-						</a>
+						{phoneHref ? (
+							<a
+								href={phoneHref}
+								className='transition-colors hover:text-ink'>
+								{contacts?.phone}
+							</a>
+						) : null}
 
-						<a
-							href='https://yandex.ru/maps/-/CPgcV-2r'
-							target='_blank'
-							rel='noreferrer'
-							className='max-w-xs leading-relaxed transition-colors hover:text-ink'>
-							{footerContacts.address}
-						</a>
+						{contacts?.email ? (
+							<a
+								href={`mailto:${contacts.email}`}
+								className='transition-colors hover:text-ink'>
+								{contacts.email}
+							</a>
+						) : null}
+
+						{contacts?.address ? (
+							<a
+								href='https://yandex.ru/maps/-/CPgcV-2r'
+								target='_blank'
+								rel='noreferrer'
+								className='max-w-xs leading-relaxed transition-colors hover:text-ink'>
+								{contacts.address}
+							</a>
+						) : null}
 					</div>
 				</div>
 			</div>

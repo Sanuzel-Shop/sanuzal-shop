@@ -1,38 +1,42 @@
 "use client";
 
 import { MessageCircle, Phone } from "lucide-react";
-import { useMemo } from "react";
 
 import { Button } from "@/components/ui/button";
 
 import { useApi } from "@/hooks/useApi";
 
 import { getContacts } from "@/lib/api";
-import { getContactActionLinks } from "@/lib/contact-actions";
-import { FALLBACK_CONTACTS } from "@/lib/fallbacks";
 
 import type { Contacts } from "@/types";
-
-import { contactCtaContent } from "./data";
 
 export function ContactCtaSection() {
 	const {
 		data: contacts,
 		loading,
 		error,
-		isFallback,
-	} = useApi<Contacts>(getContacts, FALLBACK_CONTACTS);
+	} = useApi<Contacts>(getContacts);
 
-	const safeContacts = contacts ?? FALLBACK_CONTACTS;
+	const whatsappButtonLabel = "Написать в WhatsApp";
+	const phoneButtonLabel = "Позвонить сейчас";
+	const normalizedPhone = contacts?.phone.replace(/[^\d+]/g, "") ?? "";
+	const phoneHref = normalizedPhone ? `tel:${normalizedPhone}` : "#";
+	const whatsappMessenger = contacts?.messengers.find((messenger) => {
+		const searchValue =
+			`${messenger.label} ${messenger.href}`.toLocaleLowerCase("ru-RU");
 
-	const actionLinks = useMemo(() => {
-		return getContactActionLinks(safeContacts);
-	}, [safeContacts]);
+		return searchValue.includes("whatsapp") || searchValue.includes("wa.me");
+	});
+	const whatsappPhone = normalizedPhone.replace(/^\+/, "");
+	const whatsappHref =
+		whatsappMessenger?.href ?? (whatsappPhone ? `https://wa.me/${whatsappPhone}` : "#");
+	const whatsappLabel = whatsappMessenger?.label ?? "WhatsApp";
+	const phoneLabel = contacts?.phone ?? "";
 
 	const statusText = loading
-		? contactCtaContent.loadingLabel
-		: isFallback || error
-			? contactCtaContent.fallbackLabel
+		? "Загружаем актуальные контакты..."
+		: error
+			? "Не удалось загрузить актуальные контакты."
 			: "";
 
 	return (
@@ -61,11 +65,12 @@ export function ContactCtaSection() {
 						<h2
 							id='contact-cta-title'
 							className='text-3xl font-semibold tracking-normal text-on-dark sm:text-4xl lg:text-6xl'>
-							{contactCtaContent.title}
+							Готовы обсудить проект?
 						</h2>
 
 						<p className='mx-auto mt-5 max-w-2xl text-base text-on-dark/78 sm:text-lg'>
-							{contactCtaContent.description}
+							Поможем подобрать сантехнику, зеркала и оборудование под ваш
+							объект, подготовим предложение и ответим на все вопросы.
 						</p>
 
 						<div className='mt-8 flex flex-col justify-center gap-3 sm:flex-row'>
@@ -73,16 +78,16 @@ export function ContactCtaSection() {
 								asChild
 								className='h-12 w-full rounded-md bg-canvas px-6 text-sm font-semibold text-ink shadow-control transition-all duration-200 hover:-translate-y-0.5 hover:bg-frost hover:opacity-100 sm:w-auto'>
 								<a
-									href={actionLinks.whatsappHref}
+									href={whatsappHref}
 									target='_blank'
 									rel='noreferrer'
-									aria-label={`${contactCtaContent.whatsappButtonLabel}: ${actionLinks.whatsappLabel}`}>
+									aria-label={`${whatsappButtonLabel}: ${whatsappLabel}`}>
 									<MessageCircle
 										aria-hidden='true'
 										className='mr-2 h-5 w-5'
 										strokeWidth={1.8}
 									/>
-									{contactCtaContent.whatsappButtonLabel}
+									{whatsappButtonLabel}
 								</a>
 							</Button>
 
@@ -91,14 +96,14 @@ export function ContactCtaSection() {
 								variant='outline'
 								className='h-12 w-full rounded-md border-white/22 bg-white/10 px-6 text-sm font-semibold text-on-dark shadow-control backdrop-blur transition-all duration-200 hover:-translate-y-0.5 hover:bg-white/16 hover:text-on-dark hover:opacity-100 sm:w-auto'>
 								<a
-									href={actionLinks.phoneHref}
-									aria-label={`${contactCtaContent.phoneButtonLabel}: ${actionLinks.phoneLabel}`}>
+									href={phoneHref}
+									aria-label={`${phoneButtonLabel}${phoneLabel ? `: ${phoneLabel}` : ""}`}>
 									<Phone
 										aria-hidden='true'
 										className='mr-2 h-5 w-5'
 										strokeWidth={1.8}
 									/>
-									{contactCtaContent.phoneButtonLabel}
+									{phoneButtonLabel}
 								</a>
 							</Button>
 						</div>

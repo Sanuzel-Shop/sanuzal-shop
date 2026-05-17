@@ -5,7 +5,6 @@
     "name": "Унитазы",
     "description": "Подвесные и напольные модели Leppa с чистой геометрией, безободковой чашей и тихим смывом.",
     "parentId": null,
-    "imageTone": "ceramic",
     "featured": true,
     "sortOrder": 10
   },
@@ -15,7 +14,6 @@
     "name": "Умные унитазы",
     "description": "Интеллектуальная сантехника WenSton и Leppa для проектов с повышенным уровнем комфорта.",
     "parentId": null,
-    "imageTone": "smart",
     "featured": true,
     "sortOrder": 20
   },
@@ -25,7 +23,6 @@
     "name": "Раковины",
     "description": "Аккуратная керамика для современной ванной комнаты и проектных комплектаций.",
     "parentId": null,
-    "imageTone": "stone",
     "featured": false,
     "sortOrder": 30
   },
@@ -35,7 +32,6 @@
     "name": "Водонагреватели",
     "description": "Компактные проточные модели WenSton с сенсорным управлением и вертикальным монтажом.",
     "parentId": null,
-    "imageTone": "water",
     "featured": true,
     "sortOrder": 40
   },
@@ -45,7 +41,6 @@
     "name": "Зеркала",
     "description": "LED-зеркала WenSton с антизапотеванием, сенсорным включением и тонкой рамой.",
     "parentId": null,
-    "imageTone": "mirror",
     "featured": true,
     "sortOrder": 50
   }

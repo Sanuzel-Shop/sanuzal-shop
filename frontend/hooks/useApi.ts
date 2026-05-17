@@ -8,20 +8,14 @@ type UseApiReturn<T> = {
 	data: T | null;
 	loading: boolean;
 	error: string | null;
-	isFallback: boolean;
 };
 
-export function useApi<T>(
-	apiFunction: AsyncFunction<T>,
-	fallbackData?: T,
-): UseApiReturn<T> {
+export function useApi<T>(apiFunction: AsyncFunction<T>): UseApiReturn<T> {
 	const [data, setData] = useState<T | null>(null);
 
 	const [loading, setLoading] = useState(true);
 
 	const [error, setError] = useState<string | null>(null);
-
-	const [isFallback, setIsFallback] = useState(false);
 
 	useEffect(() => {
 		let isActive = true;
@@ -30,7 +24,6 @@ export function useApi<T>(
 			try {
 				setLoading(true);
 				setError(null);
-				setIsFallback(false);
 
 				const response = await apiFunction();
 
@@ -47,11 +40,6 @@ export function useApi<T>(
 				}
 
 				setError("Something went wrong");
-
-				if (fallbackData !== undefined) {
-					setData(fallbackData);
-					setIsFallback(true);
-				}
 			} finally {
 				if (isActive) {
 					setLoading(false);
@@ -64,12 +52,11 @@ export function useApi<T>(
 		return () => {
 			isActive = false;
 		};
-	}, [apiFunction, fallbackData]);
+	}, [apiFunction]);
 
 	return {
 		data,
 		loading,
 		error,
-		isFallback,
 	};
 }
