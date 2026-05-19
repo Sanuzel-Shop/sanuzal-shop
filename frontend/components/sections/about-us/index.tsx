@@ -4,7 +4,20 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { useReducedMotion } from "framer-motion";
 
 import { AboutDesktopSlider } from "./about-desktop-slider";
-import { aboutSubsections } from "./data";
+
+import contentBlocks from "@/data/about-us.json";
+
+type AboutSubsection = {
+	id: string;
+	title: string;
+	body: string;
+	seo_keywords?: string[];
+	order: number;
+};
+
+export const aboutSubsections = [...(contentBlocks as AboutSubsection[])].sort(
+	(a, b) => a.order - b.order,
+);
 
 const clampIndex = (value: number, maxIndex: number) => {
 	return Math.min(Math.max(value, 0), Math.max(maxIndex, 0));
@@ -123,10 +136,10 @@ export function AboutUsSection() {
 	return (
 		<section
 			ref={sectionRef}
-			id='about'
-			aria-labelledby='about-title'
-			className='relative bg-canvas text-ink'>
-			<div className='relative border-y border-hairline bg-canvas px-5 py-16 sm:px-8 sm:py-20 lg:px-14 lg:py-24 md:flex md:min-h-[calc(100vh-200px)] md:items-center md:overflow-hidden'>
+			id="about"
+			aria-labelledby="about-title"
+			className="relative bg-canvas text-ink">
+			<div className="relative border-y border-hairline bg-canvas px-5 py-16 sm:px-8 sm:py-20 lg:px-14 lg:py-24 md:flex md:min-h-[calc(100vh-200px)] md:items-center md:overflow-hidden">
 				<AboutDesktopSlider
 					activeIndex={activeIndex}
 					activeSubsection={activeSubsection}
@@ -134,7 +147,7 @@ export function AboutUsSection() {
 					prefersReducedMotion={prefersReducedMotion}
 					slideCount={slideCount}
 					subsections={aboutSubsections}
-					titleId='about-title'
+					titleId="about-title"
 					onSelect={selectDesktopSlide}
 					onPrevious={() => navigateDesktopSlide(-1)}
 					onNext={() => navigateDesktopSlide(1)}
