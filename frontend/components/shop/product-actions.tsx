@@ -30,13 +30,11 @@ export function ProductActions({
 		<div
 			className={cn(
 				"grid gap-2",
-				isCard
-					? "grid-cols-[minmax(0,1fr)_auto]"
-					: "sm:grid-cols-[minmax(0,1fr)_auto]",
+				!isCard && "sm:grid-cols-[minmax(0,1fr)_auto]",
 			)}>
 			<Button
 				type="button"
-				variant={inCart ? "secondary" : "dark"}
+				variant={inCart ? "dark" : "secondary"}
 				size={isCard ? "sm" : "default"}
 				className="w-full"
 				onClick={() => {
@@ -50,25 +48,27 @@ export function ProductActions({
 				{inCart ? "В корзине" : "В корзину"}
 			</Button>
 
-			<Button
-				type="button"
-				variant={favorite ? "dark" : "secondary"}
-				size={isCard ? "icon" : "default"}
-				aria-label={
-					favorite
-						? `Удалить из избранного: ${product.name}`
-						: `Добавить в избранное: ${product.name}`
-				}
-				aria-pressed={favorite}
-				onClick={() => {
-					toggleFavorite(product);
-				}}>
-				<Heart
-					aria-hidden="true"
-					className={cn(favorite && "fill-current")}
-				/>
-				{isCard ? null : favorite ? "В избранном" : "В избранное"}
-			</Button>
+			{!isCard ? (
+				<Button
+					type="button"
+					variant={favorite ? "favorite" : "secondary"}
+					size="default"
+					aria-label={
+						favorite
+							? `Удалить из избранного: ${product.name}`
+							: `Добавить в избранное: ${product.name}`
+					}
+					aria-pressed={favorite}
+					onClick={() => {
+						toggleFavorite(product);
+					}}>
+					<Heart
+						aria-hidden="true"
+						className={cn(favorite && "fill-current")}
+					/>
+					{favorite ? "В избранном" : "В избранное"}
+				</Button>
+			) : null}
 		</div>
 	);
 }

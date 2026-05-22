@@ -43,6 +43,7 @@ export type Product = {
 	categoryKey: CategoryKey;
 	price: number | null;
 	currency: string | null;
+	inStock: boolean;
 	description: string;
 	images: ProductImage[];
 	videos: string[];
@@ -93,6 +94,7 @@ export type CatalogResult = {
 	categories: Category[];
 	activeCategory: Category | null;
 	products: Product[];
+	searchableProducts: Product[];
 	total: number;
 	pagination: PaginationMeta;
 	query: Required<Pick<CatalogQuery, "page" | "perPage" | "sort">> &

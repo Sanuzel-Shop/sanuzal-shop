@@ -1,6 +1,7 @@
 import Link from "next/link";
 
 import { Badge } from "@/components/ui/badge";
+import { ProductAvailabilityBadge } from "@/components/catalog/product-availability-badge";
 import { ProductActions } from "@/components/shop/product-actions";
 import { surfaceVariants } from "@/components/ui/surface";
 import {
@@ -39,12 +40,15 @@ export function ProductCard({
 		<article
 			className={cn(
 				surfaceVariants({ variant: "card" }),
-				"hover-lift-card flex h-full min-w-0 flex-col p-3",
+				"hover-lift-card relative flex h-full min-w-0 flex-col p-3",
 			)}>
 			<Link
 				href={href}
 				aria-label={`Открыть товар ${product.name}`}
-				className="block focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2">
+				className="absolute inset-0 z-0 rounded-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+			/>
+
+			<div className="pointer-events-none relative z-10">
 				<div
 					className={cn(
 						surfaceVariants({ variant: "media" }),
@@ -57,9 +61,9 @@ export function ProductCard({
 						style={{ backgroundImage: `url(${imageSrc})` }}
 					/>
 				</div>
-			</Link>
+			</div>
 
-			<div className="flex flex-1 flex-col p-4">
+			<div className="pointer-events-none relative z-10 flex flex-1 flex-col p-4">
 				<div className="flex items-start justify-between gap-3">
 					<div className="min-w-0">
 						{product.sku ? (
@@ -77,14 +81,13 @@ export function ProductCard({
 							</p>
 						) : null} */}
 
-						<Link
-							href={href}
-							className="mt-2 block overflow-hidden text-ellipsis whitespace-nowrap text-base font-semibold leading-snug text-ink">
+						<h2 className="mt-2 block overflow-hidden text-ellipsis whitespace-nowrap text-base font-semibold leading-snug text-ink">
 							{product.name}
-						</Link>
-						<Badge className="gap-2 mt-2">
-							<span className="size-2 rounded-full bg-green-500" />В наличии
-						</Badge>
+						</h2>
+						<ProductAvailabilityBadge
+							product={product}
+							className="mt-2"
+						/>
 					</div>
 				</div>
 
@@ -98,17 +101,55 @@ export function ProductCard({
 					))}
 				</div>
 
-				<hr className="mt-4"/>
+				<hr className="mt-4" />
 
-				<div className="mt-auto pt-5">
+				<div className="mt-auto flex items-center justify-center pt-5">
 					<p className="text-base font-semibold text-ink">
 						{formatProductPrice(product)}
 					</p>
-					<div className="mt-4">
+					<div className="pointer-events-auto relative z-20">
 						<ProductActions
 							layout="card"
 							product={shopProduct}
 						/>
+					</div>
+				</div>
+			</div>
+		</article>
+	);
+}
+
+export function ProductCardSkeleton() {
+	return (
+		<article
+			aria-hidden="true"
+			className={cn(
+				surfaceVariants({ variant: "card" }),
+				"flex h-full min-w-0 flex-col p-3",
+			)}>
+			<div
+				className={cn(
+					surfaceVariants({ variant: "media" }),
+					"aspect-[4/3] animate-pulse overflow-hidden",
+				)}
+			/>
+			<div className="flex flex-1 flex-col p-4">
+				<div className="h-3 w-24 animate-pulse rounded-full bg-toolbar" />
+				<div className="mt-3 h-5 w-4/5 animate-pulse rounded-full bg-toolbar" />
+				<div className="mt-3 h-6 w-24 animate-pulse rounded-full bg-toolbar" />
+
+				<div className="mt-4 flex flex-wrap gap-2">
+					<div className="h-7 w-20 animate-pulse rounded-full bg-toolbar" />
+					<div className="h-7 w-24 animate-pulse rounded-full bg-toolbar" />
+				</div>
+
+				<hr className="mt-4" />
+
+				<div className="mt-auto pt-5">
+					<div className="h-5 w-28 animate-pulse rounded-full bg-toolbar" />
+					<div className="mt-4 grid grid-cols-[minmax(0,1fr)_auto] gap-2">
+						<div className="h-9 animate-pulse rounded-full bg-toolbar" />
+						<div className="size-9 animate-pulse rounded-full bg-toolbar" />
 					</div>
 				</div>
 			</div>

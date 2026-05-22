@@ -2,6 +2,7 @@ import Link from "next/link";
 import { MessageCircle } from "lucide-react";
 
 import { StorefrontBreadcrumbs } from "@/components/catalog/breadcrumbs";
+import { ProductAvailabilityBadge } from "@/components/catalog/product-availability-badge";
 import { ProductInfoTabs } from "@/components/catalog/product-info-tabs";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -86,10 +87,7 @@ export function ProductDetail({
 							{product.sku ? (
 								<Badge>Арт. {product.sku}</Badge>
 							) : null}
-							<Badge className="gap-2">
-								<span className="size-1.5 rounded-full bg-ink" />
-								В наличии
-							</Badge>
+							<ProductAvailabilityBadge product={product} />
 						</div>
 
 						<p className="mt-5 text-sm font-semibold uppercase tracking-normal text-ink-faint">

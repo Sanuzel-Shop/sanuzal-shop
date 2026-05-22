@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useTransition } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Search, X } from "lucide-react";
 
@@ -25,6 +25,7 @@ function useCatalogNavigation(basePath: string) {
 		const params = new URLSearchParams(searchParams.toString());
 
 		update(params);
+		params.delete("q");
 		params.delete("page");
 		params.delete("brand");
 		params.delete(CATALOG_FILTER_PARAM);
@@ -41,26 +42,18 @@ function useCatalogNavigation(basePath: string) {
 }
 
 export function CatalogSearch({
-	basePath,
 	className,
+	isPending = false,
+	onSearchChange,
 	search,
 }: {
-	basePath: string;
 	className?: string;
-	search?: string;
+	isPending?: boolean;
+	onSearchChange: (value: string) => void;
+	search: string;
 }) {
-	const replaceParams = useCatalogNavigation(basePath);
-	const [value, setValue] = useState(search ?? "");
-
 	function updateSearch(nextValue: string) {
-		setValue(nextValue);
-		replaceParams((params) => {
-			if (nextValue.trim()) {
-				params.set("q", nextValue.trim());
-			} else {
-				params.delete("q");
-			}
-		});
+		onSearchChange(nextValue);
 	}
 
 	return (
@@ -71,14 +64,15 @@ export function CatalogSearch({
 				className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-ink-faint"
 			/>
 			<Input
-				value={value}
+				value={search}
 				onChange={(event) => {
 					updateSearch(event.target.value);
 				}}
+				aria-busy={isPending}
 				placeholder="Поиск по названию, артикулу или характеристикам"
 				className="pl-11 pr-11"
 			/>
-			{value ? (
+			{search ? (
 				<Button
 					type="button"
 					variant="secondary"
@@ -106,9 +100,10 @@ export function CatalogSortControl({
 
 	return (
 		<label className="flex w-full items-center gap-2 text-sm text-ink-muted sm:w-auto">
+			<span className="sr-only">Сортировка каталога</span>
 			<Select
 				value={sort}
-				className="min-w-[190px] bg-frost shadow-none"
+				className="min-w-[190px]"
 				onChange={(event) => {
 					const nextSort = event.target.value as CatalogSort;
 

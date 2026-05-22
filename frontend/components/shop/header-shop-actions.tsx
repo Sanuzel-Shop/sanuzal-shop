@@ -31,6 +31,11 @@ export function HeaderShopActions() {
 	const panelItems = isCartOpen
 		? state.cart.map((line) => line.product)
 		: state.favorites;
+	const favoritesButtonVariant = favoritesCount > 0
+		? "favorite"
+		: isFavoritesOpen
+			? "dark"
+			: "secondary";
 	const panelTitle = isCartOpen ? "Корзина" : "Избранное";
 	const emptyText = isCartOpen
 		? "Корзина пока пуста"
@@ -59,7 +64,7 @@ export function HeaderShopActions() {
 			<div className="relative">
 				<Button
 					type="button"
-					variant={isFavoritesOpen ? "dark" : "secondary"}
+					variant={favoritesButtonVariant}
 					size="icon"
 					aria-label={`Избранное, товаров: ${favoritesCount}`}
 					aria-expanded={isFavoritesOpen}

@@ -15,6 +15,8 @@ const buttonVariants = cva(
 					"border-hairline bg-frost text-ink shadow-none hover:border-hairline-strong hover:bg-toolbar hover:shadow-control",
 				dark:
 					"border-ink bg-ink text-on-dark hover:border-ink-muted hover:bg-ink-muted",
+				favorite:
+					"border-hairline bg-canvas text-destructive hover:border-hairline-strong hover:bg-frost",
 			},
 			size: {
 				default: "min-h-12 px-6 py-3",

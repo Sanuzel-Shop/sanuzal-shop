@@ -446,6 +446,10 @@ export async function getCatalog(
 	query: CatalogQuery = {},
 ): Promise<CatalogResult> {
 	const normalizedQuery = normalizeCatalogQuery(query);
+	const searchlessQuery = {
+		...normalizedQuery,
+		search: undefined,
+	};
 	const categories = await getCategories();
 	const activeCategory = normalizedQuery.categoryKey
 		? (categories.find(
@@ -454,6 +458,10 @@ export async function getCatalog(
 		: null;
 	const filteredProducts = filterProducts(products, normalizedQuery);
 	const sortedProducts = sortProducts(filteredProducts, normalizedQuery.sort);
+	const searchableProducts = sortProducts(
+		filterProducts(products, searchlessQuery),
+		normalizedQuery.sort,
+	);
 	const paginatedProducts = paginateProducts(
 		sortedProducts,
 		normalizedQuery.page,
@@ -464,6 +472,7 @@ export async function getCatalog(
 		categories,
 		activeCategory,
 		products: paginatedProducts.items,
+		searchableProducts,
 		total: filteredProducts.length,
 		pagination: paginatedProducts.meta,
 		query: normalizedQuery,

@@ -108,7 +108,8 @@
           "value": "Гарантийный срок 10 лет"
         }
       ],
-      "categoryKey": "toilets"
+      "categoryKey": "toilets",
+      "inStock": true
     },
     {
       "id": "product-toilets-681va",
@@ -217,7 +218,8 @@
           "value": "Гарантийный срок 10 лет"
         }
       ],
-      "categoryKey": "toilets"
+      "categoryKey": "toilets",
+      "inStock": true
     },
     {
       "id": "product-toilets-684va",
@@ -326,7 +328,8 @@
           "value": "Гарантийный срок 10 лет"
         }
       ],
-      "categoryKey": "toilets"
+      "categoryKey": "toilets",
+      "inStock": true
     },
     {
       "id": "product-toilets-948v",
@@ -435,7 +438,8 @@
           "value": "Гарантийный срок 10 лет"
         }
       ],
-      "categoryKey": "toilets"
+      "categoryKey": "toilets",
+      "inStock": true
     },
     {
       "id": "product-toilets-951v",
@@ -544,7 +548,8 @@
           "value": "Гарантийный срок 10 лет"
         }
       ],
-      "categoryKey": "toilets"
+      "categoryKey": "toilets",
+      "inStock": true
     },
     {
       "id": "product-toilets-407v",
@@ -653,7 +658,8 @@
           "value": "Гарантийный срок 10 лет"
         }
       ],
-      "categoryKey": "toilets"
+      "categoryKey": "toilets",
+      "inStock": true
     },
     {
       "id": "product-toilets-445v",
@@ -737,7 +743,8 @@
           "value": "Гарантийный срок 10 лет"
         }
       ],
-      "categoryKey": "toilets"
+      "categoryKey": "toilets",
+      "inStock": true
     },
     {
       "id": "product-toilets-448a",
@@ -846,7 +853,8 @@
           "value": "Гарантийный срок 10 лет"
         }
       ],
-      "categoryKey": "toilets"
+      "categoryKey": "toilets",
+      "inStock": true
     },
     {
       "id": "product-toilets-449a",
@@ -955,7 +963,8 @@
           "value": "Гарантийный срок 10 лет"
         }
       ],
-      "categoryKey": "toilets"
+      "categoryKey": "toilets",
+      "inStock": true
     },
     {
       "id": "product-toilets-462va",
@@ -1064,7 +1073,8 @@
           "value": "Гарантийный срок 10 лет"
         }
       ],
-      "categoryKey": "toilets"
+      "categoryKey": "toilets",
+      "inStock": true
     },
     {
       "id": "product-toilets-470va",
@@ -1173,7 +1183,8 @@
           "value": "Гарантийный срок 10 лет"
         }
       ],
-      "categoryKey": "toilets"
+      "categoryKey": "toilets",
+      "inStock": true
     },
     {
       "id": "product-toilets-476va",
@@ -1282,7 +1293,8 @@
           "value": "Гарантийный срок 10 лет"
         }
       ],
-      "categoryKey": "toilets"
+      "categoryKey": "toilets",
+      "inStock": true
     },
     {
       "id": "product-toilets-478va",
@@ -1385,7 +1397,8 @@
           "value": "Гарантийный срок 10 лет"
         }
       ],
-      "categoryKey": "toilets"
+      "categoryKey": "toilets",
+      "inStock": true
     },
     {
       "id": "product-smart-toilets-h65",
@@ -1469,7 +1482,8 @@
           "value": "Гарантийный срок 10 лет"
         }
       ],
-      "categoryKey": "smart-toilets"
+      "categoryKey": "smart-toilets",
+      "inStock": true
     },
     {
       "id": "product-smart-toilets-h88",
@@ -1553,7 +1567,8 @@
           "value": "Гарантийный срок 10 лет"
         }
       ],
-      "categoryKey": "smart-toilets"
+      "categoryKey": "smart-toilets",
+      "inStock": true
     },
     {
       "id": "product-smart-toilets-h99",
@@ -1637,7 +1652,8 @@
           "value": "Гарантийный срок 10 лет"
         }
       ],
-      "categoryKey": "smart-toilets"
+      "categoryKey": "smart-toilets",
+      "inStock": true
     },
     {
       "id": "product-smart-toilets-sz2d",
@@ -1721,7 +1737,8 @@
           "value": "Гарантийный срок 10 лет"
         }
       ],
-      "categoryKey": "smart-toilets"
+      "categoryKey": "smart-toilets",
+      "inStock": true
     },
     {
       "id": "product-smart-toilets-t13",
@@ -1805,7 +1822,8 @@
           "value": "Гарантийный срок 10 лет"
         }
       ],
-      "categoryKey": "smart-toilets"
+      "categoryKey": "smart-toilets",
+      "inStock": true
     },
     {
       "id": "product-sinks-8089",
@@ -1904,7 +1922,8 @@
           "value": "Гарантийный срок 10 лет"
         }
       ],
-      "categoryKey": "sinks"
+      "categoryKey": "sinks",
+      "inStock": true
     },
     {
       "id": "product-mirrors-base-600x800x20",
@@ -2007,7 +2026,8 @@
           "value": "Гарантийный срок 1 год"
         }
       ],
-      "categoryKey": "mirrors"
+      "categoryKey": "mirrors",
+      "inStock": true
     },
     {
       "id": "product-mirrors-base-700x800x20",
@@ -2110,7 +2130,8 @@
           "value": "Гарантийный срок 1 год"
         }
       ],
-      "categoryKey": "mirrors"
+      "categoryKey": "mirrors",
+      "inStock": true
     },
     {
       "id": "product-mirrors-base-800x800x20",
@@ -2213,7 +2234,8 @@
           "value": "Гарантийный срок 1 год"
         }
       ],
-      "categoryKey": "mirrors"
+      "categoryKey": "mirrors",
+      "inStock": true
     },
     {
       "id": "product-mirrors-base-1000x800x20",
@@ -2316,7 +2338,8 @@
           "value": "Гарантийный срок 1 год"
         }
       ],
-      "categoryKey": "mirrors"
+      "categoryKey": "mirrors",
+      "inStock": true
     },
     {
       "id": "product-mirrors-base-1200x800x20",
@@ -2419,7 +2442,8 @@
           "value": "Гарантийный срок 1 год"
         }
       ],
-      "categoryKey": "mirrors"
+      "categoryKey": "mirrors",
+      "inStock": true
     },
     {
       "id": "product-mirrors-berta-400x700x26",
@@ -2528,7 +2552,8 @@
           "value": "Гарантийный срок 1 год"
         }
       ],
-      "categoryKey": "mirrors"
+      "categoryKey": "mirrors",
+      "inStock": true
     },
     {
       "id": "product-mirrors-berta-500x800x26",
@@ -2637,7 +2662,8 @@
           "value": "Гарантийный срок 1 год"
         }
       ],
-      "categoryKey": "mirrors"
+      "categoryKey": "mirrors",
+      "inStock": true
     },
     {
       "id": "product-mirrors-berta-600x800x26",
@@ -2752,7 +2778,8 @@
           "value": "Гарантийный срок 1 год"
         }
       ],
-      "categoryKey": "mirrors"
+      "categoryKey": "mirrors",
+      "inStock": true
     },
     {
       "id": "product-mirrors-berta-700x800x26",
@@ -2867,7 +2894,8 @@
           "value": "Гарантийный срок 1 год"
         }
       ],
-      "categoryKey": "mirrors"
+      "categoryKey": "mirrors",
+      "inStock": true
     },
     {
       "id": "product-mirrors-berta-800x800x26",
@@ -2982,7 +3010,8 @@
           "value": "Гарантийный срок 1 год"
         }
       ],
-      "categoryKey": "mirrors"
+      "categoryKey": "mirrors",
+      "inStock": true
     },
     {
       "id": "product-mirrors-berta-1000x800x26",
@@ -3097,7 +3126,8 @@
           "value": "Гарантийный срок 1 год"
         }
       ],
-      "categoryKey": "mirrors"
+      "categoryKey": "mirrors",
+      "inStock": true
     },
     {
       "id": "product-mirrors-berta-1200x800x26",
@@ -3206,7 +3236,8 @@
           "value": "Гарантийный срок 1 год"
         }
       ],
-      "categoryKey": "mirrors"
+      "categoryKey": "mirrors",
+      "inStock": true
     },
     {
       "id": "product-mirrors-laura-800x800x40",
@@ -3309,7 +3340,8 @@
           "value": "Гарантийный срок 1 год"
         }
       ],
-      "categoryKey": "mirrors"
+      "categoryKey": "mirrors",
+      "inStock": true
     },
     {
       "id": "product-mirrors-leon-800x800x20",
@@ -3407,7 +3439,8 @@
           "value": "Гарантийный срок 1 год"
         }
       ],
-      "categoryKey": "mirrors"
+      "categoryKey": "mirrors",
+      "inStock": true
     },
     {
       "id": "product-mirrors-lord-800x800x50",
@@ -3510,7 +3543,8 @@
           "value": "Гарантийный срок 1 год"
         }
       ],
-      "categoryKey": "mirrors"
+      "categoryKey": "mirrors",
+      "inStock": true
     },
     {
       "id": "product-mirrors-mio-800x800x30",
@@ -3608,7 +3642,8 @@
           "value": "Гарантийный срок 1 год"
         }
       ],
-      "categoryKey": "mirrors"
+      "categoryKey": "mirrors",
+      "inStock": true
     },
     {
       "id": "product-mirrors-mio-600x600x30",
@@ -3700,7 +3735,8 @@
           "value": "Гарантийный срок 1 год"
         }
       ],
-      "categoryKey": "mirrors"
+      "categoryKey": "mirrors",
+      "inStock": true
     },
     {
       "id": "product-mirrors-royal-600x800x26",
@@ -3815,7 +3851,8 @@
           "value": "Гарантийный срок 1 год"
         }
       ],
-      "categoryKey": "mirrors"
+      "categoryKey": "mirrors",
+      "inStock": true
     },
     {
       "id": "product-mirrors-royal-700x800x26",
@@ -3930,7 +3967,8 @@
           "value": "Гарантийный срок 1 год"
         }
       ],
-      "categoryKey": "mirrors"
+      "categoryKey": "mirrors",
+      "inStock": true
     },
     {
       "id": "product-mirrors-royal-800x800x26",
@@ -4045,7 +4083,8 @@
           "value": "Гарантийный срок 1 год"
         }
       ],
-      "categoryKey": "mirrors"
+      "categoryKey": "mirrors",
+      "inStock": true
     },
     {
       "id": "product-mirrors-royal-1000x800x26",
@@ -4160,7 +4199,8 @@
           "value": "Гарантийный срок 1 год"
         }
       ],
-      "categoryKey": "mirrors"
+      "categoryKey": "mirrors",
+      "inStock": true
     },
     {
       "id": "product-mirrors-royal-1200x800x26",
@@ -4275,7 +4315,8 @@
           "value": "Гарантийный срок 1 год"
         }
       ],
-      "categoryKey": "mirrors"
+      "categoryKey": "mirrors",
+      "inStock": true
     },
     {
       "id": "product-mirrors-runo-800x800x25",
@@ -4378,7 +4419,8 @@
           "value": "Гарантийный срок 1 год"
         }
       ],
-      "categoryKey": "mirrors"
+      "categoryKey": "mirrors",
+      "inStock": true
     },
     {
       "id": "product-water-heaters-dsk-55a",
@@ -4468,7 +4510,8 @@
           "value": "Гарантийный срок 2 года"
         }
       ],
-      "categoryKey": "water-heaters"
+      "categoryKey": "water-heaters",
+      "inStock": true
     },
     {
       "id": "product-water-heaters-dsk-55b",
@@ -4558,7 +4601,8 @@
           "value": "Гарантийный срок 2 года"
         }
       ],
-      "categoryKey": "water-heaters"
+      "categoryKey": "water-heaters",
+      "inStock": true
     },
     {
       "id": "product-water-heaters-dsk-55c",
@@ -4648,7 +4692,8 @@
           "value": "Гарантийный срок 2 года"
         }
       ],
-      "categoryKey": "water-heaters"
+      "categoryKey": "water-heaters",
+      "inStock": true
     },
     {
       "id": "product-water-heaters-dsk-55d",
@@ -4738,7 +4783,8 @@
           "value": "Гарантийный срок 2 года"
         }
       ],
-      "categoryKey": "water-heaters"
+      "categoryKey": "water-heaters",
+      "inStock": true
     },
     {
       "id": "product-water-heaters-dsk-55e",
@@ -4828,7 +4874,8 @@
           "value": "Гарантийный срок 2 года"
         }
       ],
-      "categoryKey": "water-heaters"
+      "categoryKey": "water-heaters",
+      "inStock": true
     },
     {
       "id": "product-water-heaters-h2-b-dsk-85c-black",
@@ -4918,7 +4965,8 @@
           "value": "Гарантийный срок 2 года"
         }
       ],
-      "categoryKey": "water-heaters"
+      "categoryKey": "water-heaters",
+      "inStock": true
     },
     {
       "id": "product-water-heaters-h2-b-dsk-85c-white",
@@ -5008,7 +5056,8 @@
           "value": "Гарантийный срок 2 года"
         }
       ],
-      "categoryKey": "water-heaters"
+      "categoryKey": "water-heaters",
+      "inStock": true
     },
     {
       "id": "product-water-heaters-k03-dsk-85e",
@@ -5092,7 +5141,8 @@
           "value": "Гарантийный срок 2 года"
         }
       ],
-      "categoryKey": "water-heaters"
+      "categoryKey": "water-heaters",
+      "inStock": true
     },
     {
       "id": "product-water-heaters-k9-dsk-85a-black",
@@ -5157,7 +5207,8 @@
           "value": "Гарантийный срок 2 года"
         }
       ],
-      "categoryKey": "water-heaters"
+      "categoryKey": "water-heaters",
+      "inStock": true
     },
     {
       "id": "product-water-heaters-k9-dsk-85a-white",
@@ -5247,7 +5298,8 @@
           "value": "Гарантийный срок 2 года"
         }
       ],
-      "categoryKey": "water-heaters"
+      "categoryKey": "water-heaters",
+      "inStock": true
     },
     {
       "id": "product-water-heaters-v20-dsk-85d-black",
@@ -5325,7 +5377,8 @@
           "value": "Гарантийный срок 2 года"
         }
       ],
-      "categoryKey": "water-heaters"
+      "categoryKey": "water-heaters",
+      "inStock": true
     },
     {
       "id": "product-water-heaters-v20-dsk-85d-white",
@@ -5409,7 +5462,8 @@
           "value": "Гарантийный срок 2 года"
         }
       ],
-      "categoryKey": "water-heaters"
+      "categoryKey": "water-heaters",
+      "inStock": true
     },
     {
       "id": "product-water-heaters-x1-dsk-85-black",
@@ -5493,7 +5547,8 @@
           "value": "Гарантийный срок 2 года"
         }
       ],
-      "categoryKey": "water-heaters"
+      "categoryKey": "water-heaters",
+      "inStock": true
     },
     {
       "id": "product-water-heaters-x1-dsk-85-brown",
@@ -5577,7 +5632,8 @@
           "value": "Гарантийный срок 2 года"
         }
       ],
-      "categoryKey": "water-heaters"
+      "categoryKey": "water-heaters",
+      "inStock": true
     },
     {
       "id": "product-water-heaters-x7-dsk-85b",
@@ -5661,7 +5717,8 @@
           "value": "Гарантийный срок 2 года"
         }
       ],
-      "categoryKey": "water-heaters"
+      "categoryKey": "water-heaters",
+      "inStock": true
     }
   ]
 }

@@ -1,19 +1,100 @@
+"use client";
+
+import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 
 import {
 	CatalogSearch,
 	CatalogSortControl,
 } from "@/components/catalog/catalog-controls";
 import { StorefrontBreadcrumbs } from "@/components/catalog/breadcrumbs";
-import { ProductCard } from "@/components/catalog/product-card";
+import {
+	ProductCard,
+	ProductCardSkeleton,
+} from "@/components/catalog/product-card";
 import { CatalogPagination } from "@/components/catalog/pagination";
 import { Button } from "@/components/ui/button";
 import { surfaceVariants } from "@/components/ui/surface";
+import { filterProducts, paginateProducts } from "@/lib/catalog/filters";
 import { createCatalogHref } from "@/lib/catalog/url";
 import { getCategoryHref } from "@/lib/catalog/helpers";
 import { cn } from "@/lib/utils";
 
-import type { CatalogResult } from "@/types/catalog";
+import type { CatalogResult, PaginationMeta } from "@/types/catalog";
+
+const SEARCH_SKELETON_DELAY_MS = 180;
+
+function CatalogStatePagination({
+	onPageChange,
+	pagination,
+}: {
+	onPageChange: (page: number) => void;
+	pagination: PaginationMeta;
+}) {
+	if (pagination.totalPages <= 1) {
+		return null;
+	}
+
+	const pages = Array.from(
+		{ length: pagination.totalPages },
+		(_, index) => index + 1,
+	);
+
+	return (
+		<nav
+			aria-label="Навигация по найденным товарам"
+			className="mt-10 flex flex-wrap items-center justify-center gap-2">
+			<Button
+				type="button"
+				variant="secondary"
+				size="icon"
+				disabled={!pagination.hasPreviousPage}
+				onClick={() => {
+					onPageChange(Math.max(1, pagination.page - 1));
+				}}>
+				<ChevronLeft
+					aria-hidden="true"
+					className="h-4 w-4"
+				/>
+				<span className="sr-only">Предыдущая страница</span>
+			</Button>
+
+			{pages.map((page) => {
+				const isActive = page === pagination.page;
+
+				return (
+					<Button
+						key={page}
+						type="button"
+						variant={isActive ? "dark" : "secondary"}
+						size="icon"
+						aria-current={isActive ? "page" : undefined}
+						onClick={() => {
+							onPageChange(page);
+						}}>
+						{page}
+					</Button>
+				);
+			})}
+
+			<Button
+				type="button"
+				variant="secondary"
+				size="icon"
+				disabled={!pagination.hasNextPage}
+				onClick={() => {
+					onPageChange(Math.min(pagination.totalPages, pagination.page + 1));
+				}}>
+				<ChevronRight
+					aria-hidden="true"
+					className="h-4 w-4"
+				/>
+				<span className="sr-only">Следующая страница</span>
+			</Button>
+		</nav>
+	);
+}
 
 export function CatalogListing({
 	basePath,
@@ -23,8 +104,49 @@ export function CatalogListing({
 	result: CatalogResult;
 }) {
 	const { activeCategory, categories, query } = result;
-	const categoryByKey = new Map(
-		categories.map((category) => [category.key, category]),
+	const categoryByKey = useMemo(
+		() => new Map(categories.map((category) => [category.key, category])),
+		[categories],
+	);
+	const [searchValue, setSearchValue] = useState(query.search ?? "");
+	const [appliedSearch, setAppliedSearch] = useState(query.search ?? "");
+	const [searchPage, setSearchPage] = useState(1);
+	const isSearchPending = searchValue !== appliedSearch;
+	const appliedSearchText = appliedSearch.trim();
+	const inputSearchText = searchValue.trim();
+	const isSearchMode = inputSearchText.length > 0 || appliedSearchText.length > 0;
+	const filteredProducts = useMemo(() => {
+		if (!appliedSearchText) {
+			return result.searchableProducts;
+		}
+
+		return filterProducts(result.searchableProducts, {
+			search: appliedSearchText,
+		});
+	}, [appliedSearchText, result.searchableProducts]);
+	const searchResult = useMemo(
+		() =>
+			paginateProducts(
+				filteredProducts,
+				searchPage,
+				result.pagination.perPage,
+			),
+		[filteredProducts, result.pagination.perPage, searchPage],
+	);
+	const visibleProducts = isSearchMode ? searchResult.items : result.products;
+	const visiblePagination = isSearchMode
+		? searchResult.meta
+		: result.pagination;
+	const linkQuery = {
+		...query,
+		search: undefined,
+	};
+	const skeletonCount = Math.max(
+		4,
+		Math.min(
+			result.pagination.perPage,
+			visibleProducts.length || result.pagination.perPage,
+		),
 	);
 	const title = activeCategory?.name ?? "Каталог";
 	const description =
@@ -37,6 +159,25 @@ export function CatalogListing({
 				{ label: activeCategory.name },
 			]
 		: [{ label: "Главная", href: "/" }, { label: "Каталог" }];
+
+	useEffect(() => {
+		if (searchValue === appliedSearch) {
+			return;
+		}
+
+		const timeoutId = window.setTimeout(() => {
+			setAppliedSearch(searchValue);
+		}, SEARCH_SKELETON_DELAY_MS);
+
+		return () => {
+			window.clearTimeout(timeoutId);
+		};
+	}, [appliedSearch, searchValue]);
+
+	function handleSearchChange(nextValue: string) {
+		setSearchValue(nextValue);
+		setSearchPage(1);
+	}
 
 	return (
 		<section className="bg-canvas text-ink">
@@ -54,12 +195,12 @@ export function CatalogListing({
 					</div>
 				</div>
 
-				<div className="mt-8 mb-2 flex gap-2">
+				<div className="mt-8 mb-2 flex flex-col gap-2 sm:flex-row">
 					<CatalogSearch
-						key={query.search ?? ""}
-						basePath={basePath}
 						className="lg:justify-self-end lg:w-full"
-						search={query.search}
+						isPending={isSearchPending}
+						onSearchChange={handleSearchChange}
+						search={searchValue}
 					/>
 					<CatalogSortControl
 						basePath={basePath}
@@ -77,8 +218,7 @@ export function CatalogListing({
 							size="sm">
 							<Link
 								href={createCatalogHref("/catalog", {
-									search: query.search,
-									sort: query.sort,
+									sort: linkQuery.sort,
 								})}
 								className="shrink-0">
 								Все товары
@@ -94,8 +234,7 @@ export function CatalogListing({
 								size="sm">
 								<Link
 									href={createCatalogHref(getCategoryHref(category), {
-										search: query.search,
-										sort: query.sort,
+										sort: linkQuery.sort,
 									})}
 									className="shrink-0">
 									{category.name}
@@ -105,9 +244,15 @@ export function CatalogListing({
 					</nav>
 				</div>
 
-				{result.products.length > 0 ? (
+				{isSearchPending ? (
 					<div className="mt-8 grid gap-x-3 gap-y-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-						{result.products.map((product) => (
+						{Array.from({ length: skeletonCount }, (_, index) => (
+							<ProductCardSkeleton key={index} />
+						))}
+					</div>
+				) : visibleProducts.length > 0 ? (
+					<div className="mt-8 grid gap-x-3 gap-y-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+						{visibleProducts.map((product) => (
 							<ProductCard
 								key={product.id}
 								category={categoryByKey.get(product.categoryKey) ?? null}
@@ -121,15 +266,26 @@ export function CatalogListing({
 							surfaceVariants({ variant: "empty" }),
 							"mt-8 px-6 py-12 text-sm text-ink-muted",
 						)}>
-						По выбранным параметрам товаров не найдено.
+						{isSearchMode
+							? "По запросу ничего не найдено."
+							: "По выбранным параметрам товаров не найдено."}
 					</div>
 				)}
 
-				<CatalogPagination
-					basePath={basePath}
-					pagination={result.pagination}
-					query={query}
-				/>
+				{isSearchMode ? (
+					!isSearchPending && (
+						<CatalogStatePagination
+							pagination={visiblePagination}
+							onPageChange={setSearchPage}
+						/>
+					)
+				) : (
+					<CatalogPagination
+						basePath={basePath}
+						pagination={visiblePagination}
+						query={linkQuery}
+					/>
+				)}
 			</div>
 		</section>
 	);
