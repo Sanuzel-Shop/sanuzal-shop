@@ -49,7 +49,7 @@ export function AboutSlideIndicator({
         aria-hidden="true"
         className="flex flex-nowrap items-center whitespace-nowrap rounded-full border border-hairline bg-frost px-4 py-2.5 text-ink shadow-surface-md backdrop-blur md:flex-col md:py-3"
       >
-        <span className="relative inline-flex justify-end overflow-hidden tabular-nums text-base font-semibold tracking-[-0.04em] sm:text-lg">
+        <span className="relative inline-flex justify-end overflow-hidden tabular-nums text-base font-semibold tracking-normal sm:text-lg">
           <AnimatePresence mode="wait" initial={false}>
             <motion.span
               key={currentSlide}
@@ -72,7 +72,7 @@ export function AboutSlideIndicator({
         <span className="md:hidden text-base font-medium text-ink-faint px-2">
           /
         </span>
-        <span className="tabular-nums text-base font-semibold tracking-[-0.04em] text-ink-soft sm:text-lg">
+        <span className="tabular-nums text-base font-semibold tracking-normal text-ink-soft sm:text-lg">
           {totalSlides}
         </span>
       </span>

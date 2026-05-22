@@ -73,7 +73,7 @@ export function AboutDesktopSlider({
 							className='col-start-1 row-start-1 flex min-w-0 flex-col'>
 							<h2
 								id={titleId}
-								className='max-w-4xl text-2xl font-semibold leading-[0.98] tracking-[-0.055em] text-ink sm:text-3xl lg:text-5xl'>
+								className='max-w-4xl text-2xl font-semibold leading-[0.98] tracking-normal text-ink sm:text-3xl lg:text-5xl'>
 								{activeSubsection.title}
 							</h2>
 

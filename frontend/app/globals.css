@@ -183,10 +183,6 @@ body {
 	color: var(--foreground);
 }
 
-main {
-	transition: all 0.3s ease;
-}
-
 body.overlay {
 	overflow: hidden;
 }
@@ -213,7 +209,7 @@ h4,
 h5,
 h6 {
 	font-weight: 600;
-	letter-spacing: -0.04em;
+	letter-spacing: 0;
 }
 
 p {
@@ -225,18 +221,9 @@ p {
 button,
 a,
 input,
-textarea {
+textarea,
+select {
 	font: inherit;
-}
-
-button,
-a {
-	transition: all 0.3s ease;
-}
-
-a:hover,
-button:hover {
-	opacity: 0.82;
 }
 .btn-motion {
 	transform: translate3d(0, 0, 0) scale(1);

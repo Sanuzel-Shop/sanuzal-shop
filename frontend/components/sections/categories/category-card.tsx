@@ -120,7 +120,7 @@ export function CategoryCard({
 
 			<div className="flex flex-1 flex-col px-2 pb-2 pt-5">
 				<div className="flex items-start justify-between gap-4">
-					<h3 className="line-clamp-2 min-w-0 break-words text-2xl font-semibold leading-tight tracking-normal text-ink sm:text-3xl">
+					<h3 className="line-clamp-2 min-w-0 break-words text-2xl font-semibold leading-tight tracking-normal text-ink sm:text-[28px]">
 						{category.name}
 					</h3>
 

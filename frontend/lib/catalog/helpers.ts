@@ -1,14 +1,15 @@
-import { categories } from "@/data/catalog/categories";
-import { isSameSlug } from "@/lib/utils/slug";
-
 import type { Category, CategoryKey, Product, ProductAttribute } from "@/types/catalog";
 
 export function getCategoryByKey(key: CategoryKey): Category | null {
-	return categories.find((category) => category.key === key) ?? null;
+	void key;
+
+	return null;
 }
 
 export function getCategoryBySlug(slug: string): Category | null {
-	return categories.find((category) => isSameSlug(category.slug, slug)) ?? null;
+	void slug;
+
+	return null;
 }
 
 export function getCategoryHref(category: Category): string {
@@ -25,12 +26,13 @@ export function getProductImageAlt(product: Product): string {
 	return product.images.find((image) => image.role === "main")?.alt ?? product.name;
 }
 
-export function getProductHref(product: Product): string {
-	const category = getCategoryByKey(product.categoryKey);
-
+export function getProductHref(
+	product: Product,
+	category?: Pick<Category, "slug"> | null,
+): string {
 	return category
 		? `/catalog/${category.slug}/${product.slug}`
-		: `/catalog/product/${product.slug}`;
+		: "/catalog";
 }
 
 export function getProductCategory(product: Product): Category | null {

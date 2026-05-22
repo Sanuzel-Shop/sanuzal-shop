@@ -1,10 +1,18 @@
 import Link from "next/link";
-import { ArrowUpRight } from "lucide-react";
 
-import { getProductCategory, getProductHref, getProductImageAlt, getProductPrimaryImage } from "@/lib/catalog/helpers";
+import { Badge } from "@/components/ui/badge";
+import { ProductActions } from "@/components/shop/product-actions";
+import { surfaceVariants } from "@/components/ui/surface";
+import {
+	getProductHref,
+	getProductImageAlt,
+	getProductPrimaryImage,
+} from "@/lib/catalog/helpers";
+import { getShopProductSnapshot } from "@/lib/shop/product";
 import { formatAttributeValue, formatProductPrice } from "@/lib/utils/price";
+import { cn } from "@/lib/utils";
 
-import type { Product } from "@/types/catalog";
+import type { Category, Product } from "@/types/catalog";
 
 function getCardAttributes(product: Product) {
 	return product.attributes
@@ -14,23 +22,38 @@ function getCardAttributes(product: Product) {
 		.slice(0, 3);
 }
 
-export function ProductCard({ product }: { product: Product }) {
-	const category = getProductCategory(product);
+export function ProductCard({
+	category,
+	product,
+}: {
+	category?: Category | null;
+	product: Product;
+}) {
 	const imageSrc = getProductPrimaryImage(product);
 	const imageAlt = getProductImageAlt(product);
+	const href = getProductHref(product, category);
 	const cardAttributes = getCardAttributes(product);
+	const shopProduct = getShopProductSnapshot(product, category);
 
 	return (
-		<article className="group flex h-full min-w-0 flex-col overflow-hidden rounded-[8px] border border-hairline bg-canvas shadow-control">
+		<article
+			className={cn(
+				surfaceVariants({ variant: "card" }),
+				"hover-lift-card flex h-full min-w-0 flex-col p-3",
+			)}>
 			<Link
-				href={getProductHref(product)}
+				href={href}
 				aria-label={`Открыть товар ${product.name}`}
 				className="block focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2">
-				<div className="relative aspect-[4/3] overflow-hidden border-b border-hairline bg-toolbar">
+				<div
+					className={cn(
+						surfaceVariants({ variant: "media" }),
+						"relative aspect-[4/3] overflow-hidden",
+					)}>
 					<div
 						role="img"
 						aria-label={imageAlt}
-						className="absolute inset-0 bg-contain bg-center bg-no-repeat transition-transform duration-500 group-hover:scale-105"
+						className="absolute inset-0 bg-contain bg-center bg-no-repeat"
 						style={{ backgroundImage: `url(${imageSrc})` }}
 					/>
 				</div>
@@ -39,44 +62,54 @@ export function ProductCard({ product }: { product: Product }) {
 			<div className="flex flex-1 flex-col p-4">
 				<div className="flex items-start justify-between gap-3">
 					<div className="min-w-0">
-						{category ? (
+						{product.sku ? (
+							<p className="mt-1 text-xs text-ink-faint">
+								<span className="font-bold">АРТИКУЛ:</span>{" "}
+								<span className="text-foreground font-medium">
+									{product.sku}
+								</span>
+							</p>
+						) : null}
+
+						{/* {category ? (
 							<p className="text-xs font-semibold uppercase tracking-normal text-ink-faint">
 								{category.name}
 							</p>
-						) : null}
+						) : null} */}
+
 						<Link
-							href={getProductHref(product)}
-							className="mt-2 block text-base font-semibold leading-snug text-ink hover:text-ink-muted">
+							href={href}
+							className="mt-2 block overflow-hidden text-ellipsis whitespace-nowrap text-base font-semibold leading-snug text-ink">
 							{product.name}
 						</Link>
+						<Badge className="gap-2 mt-2">
+							<span className="size-2 rounded-full bg-green-500" />В наличии
+						</Badge>
 					</div>
-
-					<span className="flex size-9 shrink-0 items-center justify-center rounded-full border border-hairline bg-frost text-ink-muted transition-colors group-hover:bg-ink group-hover:text-on-dark">
-						<ArrowUpRight
-							aria-hidden="true"
-							className="h-4 w-4"
-							strokeWidth={1.8}
-						/>
-					</span>
 				</div>
 
 				<div className="mt-4 flex flex-wrap gap-2">
 					{cardAttributes.map((attribute) => (
-						<span
+						<Badge
 							key={`${attribute.key}-${attribute.value}`}
-							className="rounded-full border border-hairline bg-frost px-2.5 py-1 text-xs text-ink-muted">
+							size="sm">
 							{formatAttributeValue(attribute)}
-						</span>
+						</Badge>
 					))}
 				</div>
+
+				<hr className="mt-4"/>
 
 				<div className="mt-auto pt-5">
 					<p className="text-base font-semibold text-ink">
 						{formatProductPrice(product)}
 					</p>
-					{product.sku ? (
-						<p className="mt-1 text-xs text-ink-faint">Арт. {product.sku}</p>
-					) : null}
+					<div className="mt-4">
+						<ProductActions
+							layout="card"
+							product={shopProduct}
+						/>
+					</div>
 				</div>
 			</div>
 		</article>

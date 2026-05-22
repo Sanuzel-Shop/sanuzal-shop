@@ -13,7 +13,7 @@ export function AboutSubsectionContent({
 		<>
 			<h2
 				id={titleId}
-				className="max-w-4xl text-2xl font-semibold leading-[0.98] tracking-[-0.055em] text-ink sm:text-3xl lg:text-5xl">
+				className="max-w-4xl text-2xl font-semibold leading-[0.98] tracking-normal text-ink sm:text-3xl lg:text-5xl">
 				{subsection.title}
 			</h2>
 

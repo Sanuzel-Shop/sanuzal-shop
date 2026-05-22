@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 
+import { buttonVariants } from "@/components/ui/button";
 import { createCatalogHref } from "@/lib/catalog/url";
 import { cn } from "@/lib/utils";
 
@@ -35,7 +36,7 @@ export function CatalogPagination({
 				})}
 				aria-disabled={!pagination.hasPreviousPage}
 				className={cn(
-					"flex size-10 items-center justify-center rounded-full border border-hairline bg-frost text-ink-muted shadow-control hover:bg-toolbar",
+					buttonVariants({ variant: "secondary", size: "icon" }),
 					!pagination.hasPreviousPage && "pointer-events-none opacity-45",
 				)}>
 				<ChevronLeft
@@ -53,12 +54,10 @@ export function CatalogPagination({
 						key={page}
 						href={createCatalogHref(basePath, { ...query, page })}
 						aria-current={isActive ? "page" : undefined}
-						className={cn(
-							"flex size-10 items-center justify-center rounded-full border text-sm font-semibold shadow-control",
-							isActive
-								? "border-ink bg-ink text-on-dark"
-								: "border-hairline bg-frost text-ink-muted hover:bg-toolbar",
-						)}>
+							className={buttonVariants({
+								variant: isActive ? "dark" : "secondary",
+								size: "icon",
+							})}>
 						{page}
 					</Link>
 				);
@@ -71,7 +70,7 @@ export function CatalogPagination({
 				})}
 				aria-disabled={!pagination.hasNextPage}
 				className={cn(
-					"flex size-10 items-center justify-center rounded-full border border-hairline bg-frost text-ink-muted shadow-control hover:bg-toolbar",
+					buttonVariants({ variant: "secondary", size: "icon" }),
 					!pagination.hasNextPage && "pointer-events-none opacity-45",
 				)}>
 				<ChevronRight

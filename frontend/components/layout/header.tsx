@@ -6,7 +6,9 @@ import Link from "next/link";
 
 import { usePathname } from "next/navigation";
 
-import { Heart, Menu, ShoppingBag, X } from "lucide-react";
+import { Menu, X } from "lucide-react";
+
+import { HeaderShopActions } from "@/components/shop/header-shop-actions";
 
 const Header = () => {
 	const navItems = [
@@ -111,17 +113,7 @@ const Header = () => {
 
 				{/* Actions */}
 				<div className="flex items-center justify-end gap-2 md:gap-3">
-					<button
-						type="button"
-						className="flex size-8 items-center justify-center rounded-full border border-hairline bg-canvas text-ink-muted shadow-control transition-all duration-300 hover:bg-ink hover:text-on-dark">
-						<Heart className="h-4 w-4" />
-					</button>
-
-					<button
-						type="button"
-						className="flex size-8 items-center justify-center rounded-full border border-hairline bg-canvas text-ink-muted shadow-control transition-all duration-300 hover:bg-ink hover:text-on-dark">
-						<ShoppingBag className="h-4 w-4" />
-					</button>
+					<HeaderShopActions />
 
 					{/* Mobile menu */}
 					<div className="relative md:hidden">
