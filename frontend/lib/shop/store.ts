@@ -160,6 +160,13 @@ export function useShopState() {
 		() => new Set(state.cart.map((line) => line.product.id)),
 		[state.cart],
 	);
+	const cartQuantityById = useMemo(
+		() =>
+			new Map(
+				state.cart.map((line) => [line.product.id, line.quantity]),
+			),
+		[state.cart],
+	);
 	const favoriteIds = useMemo(
 		() => new Set(state.favorites.map((product) => product.id)),
 		[state.favorites],
@@ -199,6 +206,46 @@ export function useShopState() {
 		return "added" as const;
 	}, []);
 
+	const incrementCartQuantity = useCallback((product: ShopProductSnapshot) => {
+		const currentState = readShopState();
+		const existingLine = currentState.cart.find(
+			(line) => line.product.id === product.id,
+		);
+
+		writeShopState({
+			...currentState,
+			cart: existingLine
+				? currentState.cart.map((line) =>
+						line.product.id === product.id
+							? { ...line, quantity: line.quantity + 1 }
+							: line,
+					)
+				: [
+						{
+							product,
+							quantity: 1,
+							addedAt: Date.now(),
+						},
+						...currentState.cart,
+					],
+		});
+	}, []);
+
+	const decrementCartQuantity = useCallback((productId: string) => {
+		const currentState = readShopState();
+
+		writeShopState({
+			...currentState,
+			cart: currentState.cart
+				.map((line) =>
+					line.product.id === productId
+						? { ...line, quantity: line.quantity - 1 }
+						: line,
+				)
+				.filter((line) => line.quantity > 0),
+		});
+	}, []);
+
 	const toggleFavorite = useCallback((product: ShopProductSnapshot) => {
 		const currentState = readShopState();
 		const isFavorite = currentState.favorites.some(
@@ -228,11 +275,17 @@ export function useShopState() {
 			(productId: string) => cartIds.has(productId),
 			[cartIds],
 		),
+		getCartQuantity: useCallback(
+			(productId: string) => cartQuantityById.get(productId) ?? 0,
+			[cartQuantityById],
+		),
 		isFavorite: useCallback(
 			(productId: string) => favoriteIds.has(productId),
 			[favoriteIds],
 		),
 		addToCart,
+		incrementCartQuantity,
+		decrementCartQuantity,
 		toggleFavorite,
 	};
 }
