@@ -7,11 +7,11 @@ import { surfaceVariants } from "@/components/ui/surface";
 import {
 	getProductHref,
 	getProductImageAlt,
-	getProductPrimaryImage,
 } from "@/lib/catalog/helpers";
 import { getShopProductSnapshot } from "@/lib/shop/product";
 import { formatAttributeValue, formatProductPrice } from "@/lib/utils/price";
 import { cn } from "@/lib/utils";
+import { ProductCardMedia } from "@/components/catalog/product-card-media";
 
 import type { Category, Product } from "@/types/catalog";
 
@@ -30,7 +30,6 @@ export function ProductCard({
 	category?: Category | null;
 	product: Product;
 }) {
-	const imageSrc = getProductPrimaryImage(product);
 	const imageAlt = getProductImageAlt(product);
 	const href = getProductHref(product, category);
 	const cardAttributes = getCardAttributes(product);
@@ -48,17 +47,17 @@ export function ProductCard({
 				className="absolute inset-0 z-0 rounded-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
 			/>
 
-			<div className="pointer-events-none relative z-10">
+			<div className="relative z-10">
 				<div
 					className={cn(
 						surfaceVariants({ variant: "media" }),
 						"relative aspect-[4/3] overflow-hidden",
 					)}>
-					<div
-						role="img"
-						aria-label={imageAlt}
-						className="absolute inset-0 bg-contain bg-center bg-no-repeat"
-						style={{ backgroundImage: `url(${imageSrc})` }}
+					<ProductCardMedia
+						href={href}
+						images={product.images}
+						alt={imageAlt}
+						className="absolute inset-0"
 					/>
 				</div>
 			</div>
