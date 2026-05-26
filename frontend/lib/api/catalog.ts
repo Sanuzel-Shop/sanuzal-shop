@@ -27,7 +27,9 @@ import type {
 type PlainRecord = Record<string, unknown>;
 
 const STRAPI_API_URL = process.env.NEXT_PUBLIC_API_URL?.replace(/\/+$/, "");
+const STRAPI_API_TOKEN = process.env.STRAPI_API_TOKEN?.trim() || null;
 const STRAPI_PAGE_SIZE = 100;
+const STRAPI_MAX_PAGES = 100;
 
 function isRecord(value: unknown): value is PlainRecord {
 	return typeof value === "object" && value !== null && !Array.isArray(value);
@@ -71,6 +73,71 @@ function getStrapiApiUrl(pathname: string): URL | null {
 	}
 
 	return new URL(pathname, STRAPI_API_URL);
+}
+
+function getStrapiRequestHeaders(): HeadersInit | undefined {
+	if (!STRAPI_API_TOKEN) {
+		return undefined;
+	}
+
+	return {
+		Authorization: `Bearer ${STRAPI_API_TOKEN}`,
+	};
+}
+
+async function readResponsePreview(response: Response): Promise<string> {
+	try {
+		const text = await response.text();
+		const trimmed = text.trim();
+
+		if (!trimmed) {
+			return "(empty body)";
+		}
+
+		return trimmed.slice(0, 300);
+	} catch {
+		return "(body unreadable)";
+	}
+}
+
+function logStrapiRequestError(
+	pathname: string,
+	url: URL,
+	response: Response,
+	bodyPreview: string,
+) {
+	const message = [
+		`[strapi] Request failed for ${pathname}`,
+		`${response.status} ${response.statusText}`,
+		url.toString(),
+		bodyPreview,
+	].join(" | ");
+
+	console.error(message);
+}
+
+async function fetchStrapiJson(url: URL, pathname: string): Promise<unknown | null> {
+	try {
+		const response = await fetch(url, {
+			cache: "no-store",
+			headers: getStrapiRequestHeaders(),
+		});
+
+		if (!response.ok) {
+			const preview = await readResponsePreview(response);
+			logStrapiRequestError(pathname, url, response, preview);
+			return null;
+		}
+
+		return (await response.json()) as unknown;
+	} catch (error) {
+		console.error(
+			`[strapi] Request failed for ${pathname} | ${url.toString()} | ${
+				error instanceof Error ? error.message : "unknown error"
+			}`,
+		);
+		return null;
+	}
 }
 
 function resolveStrapiAssetUrl(url: string | null): string | null {
@@ -246,10 +313,34 @@ function parseJsonArray(value: unknown): unknown[] {
 	return [];
 }
 
+function normalizeAttributeRecords(value: unknown): PlainRecord[] {
+	const normalizedArray = parseJsonArray(value);
+
+	if (normalizedArray.length > 0) {
+		return normalizedArray.filter((entry): entry is PlainRecord => isRecord(entry));
+	}
+
+	if (isRecord(value)) {
+		if (Array.isArray(value.attributes)) {
+			return value.attributes.filter((entry): entry is PlainRecord => isRecord(entry));
+		}
+
+		return Object.entries(value)
+			.filter(([, attributeValue]) => isAttributeValue(attributeValue))
+			.map(([key, attributeValue]) => ({
+				key,
+				label: key,
+				value: attributeValue,
+			}));
+	}
+
+	return [];
+}
+
 function mapProductAttributes(value: unknown): ProductAttribute[] {
 	const attributes: ProductAttribute[] = [];
 
-	parseJsonArray(value).forEach((attribute) => {
+	normalizeAttributeRecords(value).forEach((attribute) => {
 		if (!isRecord(attribute)) {
 			return;
 		}
@@ -345,30 +436,24 @@ async function fetchStrapiCollection(
 		url.searchParams.set("pagination[page]", String(page));
 		url.searchParams.set("pagination[pageSize]", String(STRAPI_PAGE_SIZE));
 
-		try {
-			const response = await fetch(url, { cache: "no-store" });
-
-			if (!response.ok) {
-				return entries;
-			}
-
-			const payload: unknown = await response.json();
-			const data = isRecord(payload) && Array.isArray(payload.data)
-				? payload.data
-				: [];
-
-			entries.push(...data);
-			pageCount = getPaginationPageCount(payload);
-
-			if (!pageCount && data.length < STRAPI_PAGE_SIZE) {
-				break;
-			}
-		} catch {
+		const payload = await fetchStrapiJson(url, pathname);
+		if (!payload) {
 			return entries;
 		}
 
+		const data = isRecord(payload) && Array.isArray(payload.data)
+			? payload.data
+			: [];
+
+		entries.push(...data);
+		pageCount = getPaginationPageCount(payload);
+
+		if (!pageCount && data.length < STRAPI_PAGE_SIZE) {
+			break;
+		}
+
 		page += 1;
-	} while (pageCount ? page <= pageCount : page < 100);
+	} while (pageCount ? page <= pageCount : page < STRAPI_MAX_PAGES);
 
 	return entries;
 }
@@ -411,7 +496,9 @@ function mapStrapiProduct(entry: unknown): Product | null {
 	const name = getString(fields.name);
 	const slug = getString(fields.slug);
 	const categoryFields = unwrapStrapiRelation(fields.category);
-	const categorySlug = getString(categoryFields?.slug);
+	const categorySlug = getString(categoryFields?.slug)
+		?? getString(fields.categorySlug)
+		?? getString(fields.category_key);
 
 	if (!name || !slug || !categorySlug) {
 		return null;
@@ -528,7 +615,7 @@ export async function getCatalog(
 		...normalizedQuery,
 		search: undefined,
 	};
-	const [categories, products] = await Promise.all([
+	const [categories, allProducts] = await Promise.all([
 		getCategories(),
 		getProducts(),
 	]);
@@ -537,14 +624,13 @@ export async function getCatalog(
 				(category) => category.key === normalizedQuery.categoryKey,
 			) ?? null)
 		: null;
-	const filteredProducts = filterProducts(products, normalizedQuery);
-	const sortedProducts = sortProducts(filteredProducts, normalizedQuery.sort);
+	const filteredCatalogProducts = filterProducts(allProducts, normalizedQuery);
 	const searchableProducts = sortProducts(
-		filterProducts(products, searchlessQuery),
+		filterProducts(allProducts, searchlessQuery),
 		normalizedQuery.sort,
 	);
-	const paginatedProducts = paginateProducts(
-		sortedProducts,
+	const paginatedResult = paginateProducts(
+		searchableProducts,
 		normalizedQuery.page,
 		normalizedQuery.perPage,
 	);
@@ -552,12 +638,12 @@ export async function getCatalog(
 	return {
 		categories,
 		activeCategory,
-		products: paginatedProducts.items,
+		products: paginatedResult.items,
 		searchableProducts,
-		total: filteredProducts.length,
-		pagination: paginatedProducts.meta,
+		total: paginatedResult.meta.total,
+		pagination: paginatedResult.meta,
 		query: normalizedQuery,
-		brandOptions: buildBrandOptions(products),
-		filterGroups: buildFilterGroups(products),
+		brandOptions: buildBrandOptions(filteredCatalogProducts),
+		filterGroups: buildFilterGroups(filteredCatalogProducts),
 	};
 }
