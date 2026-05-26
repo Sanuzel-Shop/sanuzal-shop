@@ -1,16 +1,16 @@
-import rawCatalogData from "@/data/catalog/products.json";
 import {
+	buildBrandOptions,
+	buildFilterGroups,
 	filterProducts,
 	paginateProducts,
 	sortProducts,
 } from "@/lib/catalog/filters";
-import { getProductPrimaryImage } from "@/lib/catalog/helpers";
 import {
 	DEFAULT_CATALOG_PAGE,
 	DEFAULT_CATALOG_PER_PAGE,
 	DEFAULT_CATALOG_SORT,
 } from "@/lib/catalog/query";
-import { isSameSlug, slugify } from "@/lib/utils/slug";
+import { isSameSlug } from "@/lib/utils/slug";
 
 import type {
 	CatalogQuery,
@@ -19,91 +19,15 @@ import type {
 	CategoryKey,
 	CategoryLink,
 	Product,
+	ProductAttribute,
+	ProductAttributeValue,
+	ProductImage,
 } from "@/types/catalog";
 
-type CatalogData = {
-	schemaVersion: number;
-	products: Product[];
-};
-
-const catalogData = rawCatalogData as CatalogData;
-const products = catalogData.products;
-const STRAPI_API_URL = process.env.NEXT_PUBLIC_API_URL?.replace(/\/+$/, "");
-
-const MOCK_CATEGORY_FIXTURES = [
-	{
-		key: "toilets",
-		slug: "unitazy",
-		name: "Унитазы",
-		englishName: "Toilets",
-		description:
-			"Подвесные и напольные модели Leppa с чистой геометрией, безободковой чашей и тихим смывом.",
-		image: "/categories/unitazy.png",
-		seo: {
-			title: "Унитазы Leppa",
-			description:
-				"Каталог унитазов Leppa: напольные и подвесные модели для современных ванных комнат.",
-		},
-	},
-	{
-		key: "smart-toilets",
-		slug: "umnye-unitazy",
-		name: "Умные унитазы",
-		englishName: "Smart Toilets",
-		description:
-			"Интеллектуальная сантехника WenSton и Leppa для проектов с повышенным уровнем комфорта.",
-		image: "/categories/umnye-unitazy.png",
-		seo: {
-			title: "Умные унитазы WenSton",
-			description:
-				"Умные унитазы WenSton с продуманными функциями для современной ванной комнаты.",
-		},
-	},
-	{
-		key: "sinks",
-		slug: "rakoviny",
-		name: "Раковины",
-		englishName: "Sinks",
-		description:
-			"Аккуратная керамика для современной ванной комнаты и проектных комплектаций.",
-		image: "/categories/rakoviny.png",
-		seo: {
-			title: "Раковины Leppa",
-			description:
-				"Каталог раковин Leppa для частных интерьеров и комплектации проектов.",
-		},
-	},
-	{
-		key: "mirrors",
-		slug: "zerkala",
-		name: "Зеркала",
-		englishName: "Mirrors",
-		description:
-			"LED-зеркала WenSton с антизапотеванием, сенсорным включением и тонкой рамой.",
-		image: "/categories/zerkala.png",
-		seo: {
-			title: "Зеркала WenSton",
-			description:
-				"Зеркала WenSton с подсветкой, сенсорным управлением и антизапотеванием.",
-		},
-	},
-	{
-		key: "water-heaters",
-		slug: "vodonagrevateli",
-		name: "Водонагреватели",
-		englishName: "Water Heaters",
-		description:
-			"Проточные водонагреватели WenSton для компактных, аккуратных и функциональных решений в ванной комнате.",
-		image: "/categories/vodonagrevateli.png",
-		seo: {
-			title: "Водонагреватели WenSton",
-			description:
-				"Проточные водонагреватели WenSton: компактные модели для ванной комнаты.",
-		},
-	},
-] satisfies Category[];
-
 type PlainRecord = Record<string, unknown>;
+
+const STRAPI_API_URL = process.env.NEXT_PUBLIC_API_URL?.replace(/\/+$/, "");
+const STRAPI_PAGE_SIZE = 100;
 
 function isRecord(value: unknown): value is PlainRecord {
 	return typeof value === "object" && value !== null && !Array.isArray(value);
@@ -115,41 +39,38 @@ function getString(value: unknown): string | null {
 		: null;
 }
 
-function getMockCategoryBySlug(slug: string): Category | null {
-	return (
-		MOCK_CATEGORY_FIXTURES.find(
-			(category) =>
-				isSameSlug(category.slug, slug) || isSameSlug(category.key, slug),
-		) ?? null
-	);
+function getNumber(value: unknown): number | null {
+	if (typeof value === "number" && Number.isFinite(value)) {
+		return value;
+	}
+
+	if (typeof value === "string" && value.trim()) {
+		const parsed = Number(value);
+
+		return Number.isFinite(parsed) ? parsed : null;
+	}
+
+	return null;
 }
 
-function getMockCategoryByName(name: string): Category | null {
-	return (
-		MOCK_CATEGORY_FIXTURES.find((category) => category.name === name) ?? null
-	);
+function getBoolean(value: unknown): boolean {
+	if (typeof value === "boolean") {
+		return value;
+	}
+
+	if (typeof value === "string") {
+		return value.toLowerCase() === "true";
+	}
+
+	return false;
 }
 
-function getMockCategoryImage(categoryKey: CategoryKey): string | null {
-	const featuredProduct = products.find(
-		(product) =>
-			product.categoryKey === categoryKey && product.images.length > 0,
-	);
-
-	return featuredProduct ? getProductPrimaryImage(featuredProduct) : null;
-}
-
-function getStrapiCategoriesUrl(): URL | null {
+function getStrapiApiUrl(pathname: string): URL | null {
 	if (!STRAPI_API_URL) {
 		return null;
 	}
 
-	const url = new URL("/api/categories", STRAPI_API_URL);
-	url.searchParams.set("populate[image]", "true");
-	url.searchParams.set("sort", "name:asc");
-	url.searchParams.set("pagination[pageSize]", "100");
-
-	return url;
+	return new URL(pathname, STRAPI_API_URL);
 }
 
 function resolveStrapiAssetUrl(url: string | null): string | null {
@@ -181,6 +102,21 @@ function getStrapiEntryFields(entry: unknown): PlainRecord | null {
 	};
 }
 
+function unwrapStrapiRelation(value: unknown): PlainRecord | null {
+	if (!isRecord(value)) {
+		return null;
+	}
+
+	if ("data" in value) {
+		const data = value.data;
+		const relation = Array.isArray(data) ? data[0] : data;
+
+		return getStrapiEntryFields(relation);
+	}
+
+	return getStrapiEntryFields(value);
+}
+
 function unwrapStrapiMedia(value: unknown): PlainRecord | null {
 	if (!isRecord(value)) {
 		return null;
@@ -193,14 +129,29 @@ function unwrapStrapiMedia(value: unknown): PlainRecord | null {
 		return unwrapStrapiMedia(media);
 	}
 
-	if (isRecord(value.attributes)) {
-		return {
-			...value,
-			...value.attributes,
-		};
+	return getStrapiEntryFields(value);
+}
+
+function unwrapStrapiMediaList(value: unknown): PlainRecord[] {
+	if (Array.isArray(value)) {
+		return value
+			.map(unwrapStrapiMedia)
+			.filter((media): media is PlainRecord => media !== null);
 	}
 
-	return value;
+	if (isRecord(value) && "data" in value) {
+		const data = value.data;
+
+		if (Array.isArray(data)) {
+			return data
+				.map(unwrapStrapiMedia)
+				.filter((media): media is PlainRecord => media !== null);
+		}
+	}
+
+	const media = unwrapStrapiMedia(value);
+
+	return media ? [media] : [];
 }
 
 function getStrapiImageUrl(value: unknown): string | null {
@@ -240,7 +191,7 @@ function blockToText(value: unknown): string {
 	return blockToText(value.children);
 }
 
-function getDescription(value: unknown, fallback: string): string {
+function getDescription(value: unknown, fallback = ""): string {
 	if (typeof value === "string") {
 		return value.trim() || fallback;
 	}
@@ -258,21 +209,6 @@ function getDescription(value: unknown, fallback: string): string {
 	return fallback;
 }
 
-function getStrapiCategoryKey(
-	fields: PlainRecord,
-	slug: string,
-	mockCategory: Category | null,
-): CategoryKey {
-	return (
-		getString(fields.key) ??
-		getString(fields.categoryKey) ??
-		getString(fields.category_key) ??
-		getString(fields.code) ??
-		mockCategory?.key ??
-		slug
-	);
-}
-
 function getStrapiSeo(value: unknown): Category["seo"] | undefined {
 	if (!isRecord(value)) {
 		return undefined;
@@ -284,6 +220,159 @@ function getStrapiSeo(value: unknown): Category["seo"] | undefined {
 	return title || description ? { title, description } : undefined;
 }
 
+function isAttributeValue(value: unknown): value is ProductAttributeValue {
+	return (
+		typeof value === "string"
+		|| typeof value === "number"
+		|| typeof value === "boolean"
+	);
+}
+
+function parseJsonArray(value: unknown): unknown[] {
+	if (Array.isArray(value)) {
+		return value;
+	}
+
+	if (typeof value === "string" && value.trim()) {
+		try {
+			const parsed = JSON.parse(value);
+
+			return Array.isArray(parsed) ? parsed : [];
+		} catch {
+			return [];
+		}
+	}
+
+	return [];
+}
+
+function mapProductAttributes(value: unknown): ProductAttribute[] {
+	const attributes: ProductAttribute[] = [];
+
+	parseJsonArray(value).forEach((attribute) => {
+		if (!isRecord(attribute)) {
+			return;
+		}
+
+		const key = getString(attribute.key);
+		const label = getString(attribute.label);
+		const attributeValue = attribute.value;
+
+		if (!key || !label || !isAttributeValue(attributeValue)) {
+			return;
+		}
+
+		const unit = getString(attribute.unit);
+
+		attributes.push({
+			key,
+			label,
+			value: attributeValue,
+			...(unit ? { unit } : {}),
+		});
+	});
+
+	return attributes;
+}
+
+function mapProductImages(value: unknown, productName: string): ProductImage[] {
+	const images: ProductImage[] = [];
+
+	unwrapStrapiMediaList(value).forEach((media, index) => {
+		const url = getStrapiImageUrl(media);
+
+		if (!url) {
+			return;
+		}
+
+		const label = getString(media.caption) ?? getString(media.name);
+		const alt =
+			getString(media.alternativeText) ??
+			getString(media.caption) ??
+			productName;
+
+		images.push({
+			url,
+			alt,
+			...(label ? { label } : {}),
+			...(index === 0 ? { role: "main" } : {}),
+		});
+	});
+
+	return images;
+}
+
+function mapProductVideos(value: unknown): string[] {
+	return unwrapStrapiMediaList(value)
+		.map((media) => resolveStrapiAssetUrl(getString(media.url)))
+		.filter((url): url is string => url !== null);
+}
+
+function getPaginationPageCount(payload: unknown): number | null {
+	if (!isRecord(payload) || !isRecord(payload.meta)) {
+		return null;
+	}
+
+	if (!isRecord(payload.meta.pagination)) {
+		return null;
+	}
+
+	return getNumber(payload.meta.pagination.pageCount);
+}
+
+async function fetchStrapiCollection(
+	pathname: string,
+	configureUrl?: (url: URL) => void,
+): Promise<unknown[]> {
+	const firstUrl = getStrapiApiUrl(pathname);
+
+	if (!firstUrl) {
+		return [];
+	}
+
+	const entries: unknown[] = [];
+	let page = 1;
+	let pageCount: number | null = null;
+
+	do {
+		const url = getStrapiApiUrl(pathname);
+
+		if (!url) {
+			return entries;
+		}
+
+		configureUrl?.(url);
+		url.searchParams.set("pagination[page]", String(page));
+		url.searchParams.set("pagination[pageSize]", String(STRAPI_PAGE_SIZE));
+
+		try {
+			const response = await fetch(url, { cache: "no-store" });
+
+			if (!response.ok) {
+				return entries;
+			}
+
+			const payload: unknown = await response.json();
+			const data = isRecord(payload) && Array.isArray(payload.data)
+				? payload.data
+				: [];
+
+			entries.push(...data);
+			pageCount = getPaginationPageCount(payload);
+
+			if (!pageCount && data.length < STRAPI_PAGE_SIZE) {
+				break;
+			}
+		} catch {
+			return entries;
+		}
+
+		page += 1;
+	} while (pageCount ? page <= pageCount : page < 100);
+
+	return entries;
+}
+
 function mapStrapiCategory(entry: unknown): Category | null {
 	const fields = getStrapiEntryFields(entry);
 
@@ -292,96 +381,85 @@ function mapStrapiCategory(entry: unknown): Category | null {
 	}
 
 	const name = getString(fields.name);
+	const slug = getString(fields.slug);
 
-	if (!name) {
+	if (!name || !slug) {
 		return null;
 	}
 
-	const slug = getString(fields.slug) ?? slugify(name);
-	const mockCategory =
-		getMockCategoryBySlug(slug) ?? getMockCategoryByName(name);
-	const key = getStrapiCategoryKey(fields, slug, mockCategory);
-
 	return {
-		key,
+		key: slug,
 		slug,
 		name,
 		englishName:
 			getString(fields.englishName) ??
 			getString(fields.english_name) ??
-			mockCategory?.englishName ??
 			name,
-		description: getDescription(
-			fields.description,
-			mockCategory?.description ?? "",
-		),
-		image:
-			getStrapiImageUrl(fields.image) ??
-			mockCategory?.image ??
-			getMockCategoryImage(key),
-		seo: getStrapiSeo(fields.seo) ?? mockCategory?.seo,
+		description: getDescription(fields.description),
+		image: getStrapiImageUrl(fields.image),
+		seo: getStrapiSeo(fields.seo),
 	};
 }
 
-function getMockStrapiCategoryEntries(): PlainRecord[] {
-	return MOCK_CATEGORY_FIXTURES.map((category, index) => ({
-		id: index + 1,
-		documentId: `mock-category-${category.key}`,
-		key: category.key,
-		slug: category.slug,
-		name: category.name,
-		englishName: category.englishName,
-		description: category.description,
-		image: category.image ? { url: category.image } : null,
-		seo: category.seo,
-	}));
+function mapStrapiProduct(entry: unknown): Product | null {
+	const fields = getStrapiEntryFields(entry);
+
+	if (!fields) {
+		return null;
+	}
+
+	const name = getString(fields.name);
+	const slug = getString(fields.slug);
+	const categoryFields = unwrapStrapiRelation(fields.category);
+	const categorySlug = getString(categoryFields?.slug);
+
+	if (!name || !slug || !categorySlug) {
+		return null;
+	}
+
+	return {
+		id:
+			getString(fields.documentId) ??
+			getString(fields.id) ??
+			String(getNumber(fields.id) ?? slug),
+		slug,
+		sku: getString(fields.sku),
+		name,
+		brand: getString(fields.brand),
+		model: getString(fields.model),
+		categoryKey: categorySlug,
+		price: getNumber(fields.price),
+		currency: getString(fields.currency),
+		inStock: getBoolean(fields.inStock),
+		description: getDescription(fields.description),
+		images: mapProductImages(fields.images, name),
+		videos: mapProductVideos(fields.videos),
+		attributes: mapProductAttributes(fields.attributes),
+	};
 }
 
-function getMockCategories(): Category[] {
-	return getMockStrapiCategoryEntries()
+async function fetchStrapiCategories(): Promise<Category[]> {
+	const entries = await fetchStrapiCollection("/api/categories", (url) => {
+		url.searchParams.set("populate[image]", "true");
+		url.searchParams.set("sort", "name:asc");
+	});
+
+	return entries
 		.map(mapStrapiCategory)
 		.filter((category): category is Category => category !== null);
 }
 
-function mergeCategoriesWithMock(apiCategories: Category[]): Category[] {
-	const mockCategories = getMockCategories();
-	const usedKeys = new Set(apiCategories.map((category) => category.key));
-	const usedSlugs = new Set(
-		apiCategories.map((category) => category.slug.toLowerCase()),
-	);
-	const missingMockCategories = mockCategories.filter((category) => {
-		return (
-			!usedKeys.has(category.key) && !usedSlugs.has(category.slug.toLowerCase())
-		);
+async function fetchStrapiProducts(): Promise<Product[]> {
+	const entries = await fetchStrapiCollection("/api/products", (url) => {
+		url.searchParams.set("populate[images]", "true");
+		url.searchParams.set("populate[videos]", "true");
+		url.searchParams.set("populate[category]", "true");
+		url.searchParams.set("sort", "name:asc");
 	});
 
-	return [...apiCategories, ...missingMockCategories];
-}
-
-async function fetchStrapiCategories(): Promise<Category[]> {
-	const url = getStrapiCategoriesUrl();
-
-	if (!url) {
-		return [];
-	}
-
-	try {
-		const response = await fetch(url, { cache: "no-store" });
-
-		if (!response.ok) {
-			return [];
-		}
-
-		const payload: unknown = await response.json();
-		const entries =
-			isRecord(payload) && Array.isArray(payload.data) ? payload.data : [];
-
-		return entries
-			.map(mapStrapiCategory)
-			.filter((category): category is Category => category !== null);
-	} catch {
-		return [];
-	}
+	return entries
+		.map(mapStrapiProduct)
+		.filter((product): product is Product => product !== null);
 }
 
 function normalizeCatalogQuery(query: CatalogQuery): CatalogResult["query"] {
@@ -390,15 +468,13 @@ function normalizeCatalogQuery(query: CatalogQuery): CatalogResult["query"] {
 		page: query.page ?? DEFAULT_CATALOG_PAGE,
 		perPage: query.perPage ?? DEFAULT_CATALOG_PER_PAGE,
 		sort: query.sort ?? DEFAULT_CATALOG_SORT,
-		brand: [],
-		filters: {},
+		brand: query.brand ?? [],
+		filters: query.filters ?? {},
 	};
 }
 
 export async function getCategories(): Promise<Category[]> {
-	const apiCategories = await fetchStrapiCategories();
-
-	return mergeCategoriesWithMock(apiCategories);
+	return fetchStrapiCategories();
 }
 
 export async function getFooterCategories(): Promise<CategoryLink[]> {
@@ -424,13 +500,15 @@ export async function getCategoryBySlug(
 }
 
 export async function getProducts(): Promise<Product[]> {
-	return products;
+	return fetchStrapiProducts();
 }
 
 export async function getProductBySlug(
 	slug: string,
 	categoryKey?: CategoryKey,
 ): Promise<Product | null> {
+	const products = await getProducts();
+
 	return (
 		products.find((product) => {
 			if (product.slug !== slug) {
@@ -450,7 +528,10 @@ export async function getCatalog(
 		...normalizedQuery,
 		search: undefined,
 	};
-	const categories = await getCategories();
+	const [categories, products] = await Promise.all([
+		getCategories(),
+		getProducts(),
+	]);
 	const activeCategory = normalizedQuery.categoryKey
 		? (categories.find(
 				(category) => category.key === normalizedQuery.categoryKey,
@@ -476,7 +557,7 @@ export async function getCatalog(
 		total: filteredProducts.length,
 		pagination: paginatedProducts.meta,
 		query: normalizedQuery,
-		brandOptions: [],
-		filterGroups: [],
+		brandOptions: buildBrandOptions(products),
+		filterGroups: buildFilterGroups(products),
 	};
 }
