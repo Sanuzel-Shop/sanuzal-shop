@@ -24,6 +24,11 @@ import {
 } from "@/components/media/product-media-frame";
 import { surfaceVariants } from "@/components/ui/surface";
 import { copyTextToClipboard } from "@/lib/utils/clipboard";
+import {
+	mapCartLinesToOrderItems,
+	submitCheckoutOrder,
+	type CheckoutCustomer,
+} from "@/lib/api/order";
 import { emitShopToast, useShopState } from "@/lib/shop/store";
 import { formatPrice } from "@/lib/utils/price";
 import { cn } from "@/lib/utils";
@@ -472,16 +477,24 @@ function CartItemsPanel({
 
 function CheckoutPanel({
 	cartCount,
+	lines,
+	onOrderSuccess,
 	hasRequestedPrice,
 	subtotalLabel,
 }: {
 	cartCount: number;
+	lines: CartLine[];
+	onOrderSuccess: () => void;
 	hasRequestedPrice: boolean;
 	subtotalLabel: string;
 }) {
 	const [buyerType, setBuyerType] = useState<BuyerType>("person");
 	const [callBack, setCallBack] = useState(false);
+	const [comment, setComment] = useState("");
 	const [formValues, setFormValues] = useState(EMPTY_CHECKOUT_VALUES);
+	const [honeypot, setHoneypot] = useState("");
+	const [isSubmitting, setIsSubmitting] = useState(false);
+	const [submitError, setSubmitError] = useState<string | null>(null);
 	const requiredFields = buyerType === "person"
 		? PERSON_REQUIRED_FIELDS
 		: COMPANY_REQUIRED_FIELDS;
@@ -518,9 +531,10 @@ function CheckoutPanel({
 
 	function handleBuyerTypeChange(nextBuyerType: BuyerType) {
 		setBuyerType(nextBuyerType);
+		setSubmitError(null);
 	}
 
-	function handleDeliverySelect() {
+	async function handleSubmitOrder() {
 		if (!isCheckoutReady) {
 			emitShopToast({
 				title: "Проверьте данные",
@@ -532,10 +546,71 @@ function CheckoutPanel({
 			return;
 		}
 
-		emitShopToast({
-			title: "Доставка будет рассчитана менеджером",
-			description: `${cartCount} товаров в заказе`,
-		});
+		setIsSubmitting(true);
+		setSubmitError(null);
+
+		try {
+			const order = await submitCheckoutOrder({
+				buyerType,
+				customer: formValues as CheckoutCustomer,
+				delivery: {
+					country: "Российская Федерация",
+					region: formValues.region,
+					city: formValues.city,
+				},
+				items: mapCartLinesToOrderItems(
+					lines,
+					(line) => formatCartPrice(getProductUnitPrice(line.product), line.product.currency ?? "RUB"),
+					(line) => formatCartPrice(getLineTotal(line), line.product.currency ?? "RUB"),
+				),
+				comment,
+				callBack,
+				cartCount,
+				subtotalLabel,
+				hasRequestedPrice,
+				pageUrl: typeof window === "undefined" ? "" : window.location.href,
+				website: honeypot,
+			});
+
+			const isEmailFailed = order.mode === "email_failed";
+			const isSavedOnly = order.mode === "saved";
+			const isMockMode = order.mode === "mock";
+
+			emitShopToast({
+				title: isEmailFailed || isSavedOnly || isMockMode
+					? "Заявка сохранена"
+					: "Заказ отправлен",
+				description: isMockMode
+					? "Тестовый режим: письмо не отправлено."
+					: isSavedOnly
+						? "Почта пока не настроена, менеджер увидит заявку в Strapi."
+						: isEmailFailed
+							? "Письмо не отправилось, но заявка есть в Strapi."
+							: order.id
+						? `Номер заявки: ${order.id}`
+						: "Менеджер свяжется с вами для подтверждения.",
+			});
+
+			if (!isMockMode) {
+				onOrderSuccess();
+				setFormValues(EMPTY_CHECKOUT_VALUES);
+				setComment("");
+				setHoneypot("");
+				setCallBack(false);
+			}
+		} catch (error) {
+			const message = error instanceof Error
+				? error.message
+				: "Не удалось отправить заказ. Попробуйте еще раз.";
+
+			setSubmitError(message);
+			emitShopToast({
+				title: "Не удалось отправить заказ",
+				description: message,
+			});
+		} finally {
+			setIsSubmitting(false);
+		}
 	}
 
 	return (
@@ -848,9 +923,26 @@ function CheckoutPanel({
 					/>
 				</div>
 				<textarea
+					value={comment}
+					onChange={(event) => {
+						setComment(event.target.value);
+						setSubmitError(null);
+					}}
 					className="min-h-28 w-full resize-y rounded-md border border-hairline bg-canvas px-4 py-3 text-sm text-ink shadow-control outline-none placeholder:text-ink-faint focus-visible:border-hairline-strong focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
 				/>
 			</div>
+
+			<label className="sr-only">
+				Сайт
+				<input
+					value={honeypot}
+					onChange={(event) => {
+						setHoneypot(event.target.value);
+					}}
+					tabIndex={-1}
+					autoComplete="off"
+				/>
+			</label>
 
 			<div className="mt-7 grid gap-3">
 				<SummaryRow
@@ -883,10 +975,15 @@ function CheckoutPanel({
 				type="button"
 				variant="dark"
 				className="mt-6 w-full"
-				disabled={!isCheckoutReady}
-				onClick={handleDeliverySelect}>
-				Выбрать доставку
+				disabled={!isCheckoutReady || isSubmitting}
+				onClick={handleSubmitOrder}>
+				{isSubmitting ? "Отправляем заказ..." : "Отправить заказ"}
 			</Button>
+			{submitError ? (
+				<p className="mt-3 text-xs font-medium text-destructive">
+					{submitError}
+				</p>
+			) : null}
 			{!isCheckoutReady ? (
 				<p className="mt-3 text-xs text-ink-muted">
 					Заполните корректно: {invalidFieldsLabel}
@@ -1003,6 +1100,8 @@ export function CartPage() {
 							/>
 							<CheckoutPanel
 								cartCount={cartCount}
+								lines={state.cart}
+								onOrderSuccess={clearCart}
 								hasRequestedPrice={hasRequestedPrice}
 								subtotalLabel={subtotalLabel}
 							/>

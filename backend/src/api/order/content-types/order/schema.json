@@ -1,0 +1,104 @@
+{
+  "kind": "collectionType",
+  "collectionName": "orders",
+  "info": {
+    "singularName": "order",
+    "pluralName": "orders",
+    "displayName": "Order Request",
+    "description": "Checkout requests submitted from the storefront"
+  },
+  "options": {
+    "draftAndPublish": false
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "orderNumber": {
+      "type": "string",
+      "required": true,
+      "unique": true
+    },
+    "processingStatus": {
+      "type": "enumeration",
+      "enum": [
+        "new",
+        "processed",
+        "cancelled"
+      ],
+      "default": "new",
+      "required": true
+    },
+    "emailStatus": {
+      "type": "enumeration",
+      "enum": [
+        "disabled",
+        "pending",
+        "sent",
+        "failed"
+      ],
+      "default": "pending",
+      "required": true
+    },
+    "buyerType": {
+      "type": "enumeration",
+      "enum": [
+        "person",
+        "company"
+      ],
+      "required": true
+    },
+    "customerName": {
+      "type": "string"
+    },
+    "companyName": {
+      "type": "string"
+    },
+    "phone": {
+      "type": "string",
+      "required": true
+    },
+    "email": {
+      "type": "email",
+      "required": true
+    },
+    "customer": {
+      "type": "json"
+    },
+    "delivery": {
+      "type": "json"
+    },
+    "items": {
+      "type": "json",
+      "required": true
+    },
+    "comment": {
+      "type": "text"
+    },
+    "callBack": {
+      "type": "boolean",
+      "default": false
+    },
+    "cartCount": {
+      "type": "integer",
+      "default": 0
+    },
+    "subtotalLabel": {
+      "type": "string"
+    },
+    "hasRequestedPrice": {
+      "type": "boolean",
+      "default": false
+    },
+    "pageUrl": {
+      "type": "string"
+    },
+    "requestMeta": {
+      "type": "json"
+    },
+    "emailError": {
+      "type": "text"
+    },
+    "emailSentAt": {
+      "type": "datetime"
+    }
+  }
+}

@@ -475,6 +475,63 @@ export interface ApiCategoryCategory extends Struct.CollectionTypeSchema {
   };
 }
 
+export interface ApiOrderOrder extends Struct.CollectionTypeSchema {
+  collectionName: 'orders';
+  info: {
+    description: 'Checkout requests submitted from the storefront';
+    displayName: 'Order Request';
+    pluralName: 'orders';
+    singularName: 'order';
+  };
+  options: {
+    draftAndPublish: false;
+  };
+  attributes: {
+    buyerType: Schema.Attribute.Enumeration<['person', 'company']> &
+      Schema.Attribute.Required;
+    callBack: Schema.Attribute.Boolean & Schema.Attribute.DefaultTo<false>;
+    cartCount: Schema.Attribute.Integer & Schema.Attribute.DefaultTo<0>;
+    comment: Schema.Attribute.Text;
+    companyName: Schema.Attribute.String;
+    createdAt: Schema.Attribute.DateTime;
+    createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    customer: Schema.Attribute.JSON;
+    customerName: Schema.Attribute.String;
+    delivery: Schema.Attribute.JSON;
+    email: Schema.Attribute.Email & Schema.Attribute.Required;
+    emailError: Schema.Attribute.Text;
+    emailSentAt: Schema.Attribute.DateTime;
+    emailStatus: Schema.Attribute.Enumeration<
+      ['disabled', 'pending', 'sent', 'failed']
+    > &
+      Schema.Attribute.Required &
+      Schema.Attribute.DefaultTo<'pending'>;
+    hasRequestedPrice: Schema.Attribute.Boolean &
+      Schema.Attribute.DefaultTo<false>;
+    items: Schema.Attribute.JSON & Schema.Attribute.Required;
+    locale: Schema.Attribute.String & Schema.Attribute.Private;
+    localizations: Schema.Attribute.Relation<'oneToMany', 'api::order.order'> &
+      Schema.Attribute.Private;
+    orderNumber: Schema.Attribute.String &
+      Schema.Attribute.Required &
+      Schema.Attribute.Unique;
+    pageUrl: Schema.Attribute.String;
+    phone: Schema.Attribute.String & Schema.Attribute.Required;
+    processingStatus: Schema.Attribute.Enumeration<
+      ['new', 'processed', 'cancelled']
+    > &
+      Schema.Attribute.Required &
+      Schema.Attribute.DefaultTo<'new'>;
+    publishedAt: Schema.Attribute.DateTime;
+    requestMeta: Schema.Attribute.JSON;
+    subtotalLabel: Schema.Attribute.String;
+    updatedAt: Schema.Attribute.DateTime;
+    updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+  };
+}
+
 export interface ApiProductProduct extends Struct.CollectionTypeSchema {
   collectionName: 'products';
   info: {
@@ -1033,6 +1090,7 @@ declare module '@strapi/strapi' {
       'admin::transfer-token-permission': AdminTransferTokenPermission;
       'admin::user': AdminUser;
       'api::category.category': ApiCategoryCategory;
+      'api::order.order': ApiOrderOrder;
       'api::product.product': ApiProductProduct;
       'plugin::content-releases.release': PluginContentReleasesRelease;
       'plugin::content-releases.release-action': PluginContentReleasesReleaseAction;
