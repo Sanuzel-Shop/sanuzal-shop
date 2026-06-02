@@ -76,6 +76,9 @@ type SmtpTransportConfig = {
 	host: string;
 	port: number;
 	secure: boolean;
+	connectionTimeout?: number;
+	greetingTimeout?: number;
+	socketTimeout?: number;
 	auth?: {
 		user: string;
 		pass: string;
@@ -574,13 +577,103 @@ function buildTextEmail(order: NormalizedOrder, meta: RequestMeta): string {
 	].join("\n");
 }
 
+function formatMailDate(date = new Date()): string {
+	return new Intl.DateTimeFormat("ru-RU", {
+		day: "2-digit",
+		month: "long",
+		year: "numeric",
+		hour: "2-digit",
+		minute: "2-digit",
+		timeZone: "Europe/Moscow",
+	}).format(date);
+}
+
+function getBaseUrl(order: NormalizedOrder, meta: RequestMeta): string {
+	if (meta.origin) {
+		return meta.origin;
+	}
+
+	if (!order.pageUrl) {
+		return "";
+	}
+
+	try {
+		return new URL(order.pageUrl).origin;
+	} catch {
+		return "";
+	}
+}
+
+function getAbsoluteUrl(value: string, baseUrl: string): string {
+	if (!value) {
+		return "";
+	}
+
+	try {
+		return new URL(value, baseUrl || undefined).href;
+	} catch {
+		return value;
+	}
+}
+
+function getPhoneHref(phone: string): string {
+	const normalizedPhone = phone.replace(/[^\d+]/g, "");
+
+	return normalizedPhone ? `tel:${normalizedPhone}` : "";
+}
+
 function buildHtmlRows(lines: Array<[string, string]>): string {
 	return lines
 		.filter(([, value]) => value.length > 0)
 		.map(([label, value]) => (
-			`<tr><td style="padding:6px 12px 6px 0;color:#6b7280;">${escapeHtml(label)}</td><td style="padding:6px 0;font-weight:600;">${escapeHtml(value)}</td></tr>`
+			`<tr>
+				<td style="padding:7px 14px 7px 0;color:#6e6e73;font-size:13px;line-height:1.35;vertical-align:top;white-space:nowrap;">${escapeHtml(label)}</td>
+				<td style="padding:7px 0;color:#161617;font-size:14px;font-weight:600;line-height:1.35;vertical-align:top;">${escapeHtml(value)}</td>
+			</tr>`
 		))
 		.join("");
+}
+
+function buildHtmlSummaryTile(label: string, value: string, isPrimary = false): string {
+	return `
+		<td style="padding:4px;width:33.333%;vertical-align:top;">
+			<table role="presentation" cellpadding="0" cellspacing="0" style="width:100%;border-collapse:separate;border-spacing:0;background:${isPrimary ? "#161617" : "#f5f5f7"};border:1px solid ${isPrimary ? "#161617" : "#e8e8ed"};border-radius:8px;">
+				<tr>
+					<td style="padding:14px 14px 13px;">
+						<div style="color:${isPrimary ? "#f5f5f7" : "#6e6e73"};font-size:12px;font-weight:600;line-height:1.2;">${escapeHtml(label)}</div>
+						<div style="margin-top:7px;color:${isPrimary ? "#ffffff" : "#161617"};font-size:${isPrimary ? "20px" : "16px"};font-weight:700;line-height:1.2;">${escapeHtml(value)}</div>
+					</td>
+				</tr>
+			</table>
+		</td>
+	`;
+}
+
+function buildHtmlSection(title: string, content: string): string {
+	return `
+		<tr>
+			<td style="padding-top:18px;">
+				<table role="presentation" cellpadding="0" cellspacing="0" style="width:100%;border-collapse:separate;border-spacing:0;background:#ffffff;border:1px solid #e8e8ed;border-radius:8px;">
+					<tr>
+						<td style="padding:22px 22px 20px;">
+							<h2 style="margin:0 0 14px;color:#161617;font-size:18px;font-weight:700;line-height:1.25;letter-spacing:0;">${escapeHtml(title)}</h2>
+							${content}
+						</td>
+					</tr>
+				</table>
+			</td>
+		</tr>
+	`;
+}
+
+function buildHtmlAction(href: string, label: string, isPrimary = false): string {
+	if (!href) {
+		return "";
+	}
+
+	return `
+		<a href="${escapeHtml(href)}" style="display:inline-block;margin:6px 8px 0 0;padding:10px 15px;border-radius:999px;border:1px solid ${isPrimary ? "#161617" : "#d8d8df"};background:${isPrimary ? "#161617" : "#ffffff"};color:${isPrimary ? "#ffffff" : "#161617"};font-size:13px;font-weight:700;line-height:1;text-decoration:none;">${escapeHtml(label)}</a>
+	`;
 }
 
 function buildHtmlEmail(order: NormalizedOrder, meta: RequestMeta): string {
@@ -607,62 +700,156 @@ function buildHtmlEmail(order: NormalizedOrder, meta: RequestMeta): string {
 			["Телефон", order.customer.phone],
 			["Email", order.customer.email],
 		];
+	const buyerName = getBuyerName(order) || "Покупатель";
+	const baseUrl = getBaseUrl(order, meta);
+	const pageUrl = getAbsoluteUrl(order.pageUrl, baseUrl);
+	const phoneHref = getPhoneHref(order.customer.phone);
+	const emailHref = order.customer.email ? `mailto:${order.customer.email}` : "";
+	const preheader = `Новый заказ ${order.orderId}: ${buyerName}, ${order.cartCount} товаров.`;
+	const buyerTypeLabel = order.buyerType === "company" ? "Юридическое лицо" : "Физическое лицо";
+	const deliveryLabel = [order.delivery.region, order.delivery.city]
+		.filter(Boolean)
+		.join(", ");
 	const items = order.items
 		.map((item, index) => (
 			`<tr>
-				<td style="padding:10px 8px;border-top:1px solid #e5e7eb;">${index + 1}</td>
-				<td style="padding:10px 8px;border-top:1px solid #e5e7eb;">
-					<strong>${escapeHtml(item.name)}</strong>
-					${item.sku ? `<br><span style="color:#6b7280;">${escapeHtml(item.sku)}</span>` : ""}
-					${item.href ? `<br><a href="${escapeHtml(item.href)}" style="color:#111827;">Открыть товар</a>` : ""}
+				<td style="padding:15px 12px;border-top:${index === 0 ? "0" : "1px solid #e8e8ed"};color:#6e6e73;font-size:13px;vertical-align:top;">${index + 1}</td>
+				<td style="padding:15px 12px;border-top:${index === 0 ? "0" : "1px solid #e8e8ed"};vertical-align:top;">
+					<div style="color:#161617;font-size:15px;font-weight:700;line-height:1.35;">${escapeHtml(item.name)}</div>
+					${item.sku ? `<div style="margin-top:4px;color:#6e6e73;font-size:12px;line-height:1.35;">Артикул: ${escapeHtml(item.sku)}</div>` : ""}
+					${item.href ? `<a href="${escapeHtml(getAbsoluteUrl(item.href, baseUrl))}" style="display:inline-block;margin-top:9px;color:#161617;font-size:12px;font-weight:700;text-decoration:underline;text-underline-offset:2px;">Открыть товар</a>` : ""}
 				</td>
-				<td style="padding:10px 8px;border-top:1px solid #e5e7eb;text-align:center;">${item.quantity}</td>
-				<td style="padding:10px 8px;border-top:1px solid #e5e7eb;text-align:right;">${escapeHtml(item.priceLabel)}</td>
-				<td style="padding:10px 8px;border-top:1px solid #e5e7eb;text-align:right;">${escapeHtml(item.lineTotalLabel)}</td>
+				<td style="padding:15px 12px;border-top:${index === 0 ? "0" : "1px solid #e8e8ed"};color:#161617;font-size:14px;font-weight:700;text-align:center;vertical-align:top;">${item.quantity}</td>
+				<td style="padding:15px 12px;border-top:${index === 0 ? "0" : "1px solid #e8e8ed"};color:#161617;font-size:14px;font-weight:600;text-align:right;vertical-align:top;white-space:nowrap;">${escapeHtml(item.priceLabel || "по запросу")}</td>
+				<td style="padding:15px 12px;border-top:${index === 0 ? "0" : "1px solid #e8e8ed"};color:#161617;font-size:14px;font-weight:700;text-align:right;vertical-align:top;white-space:nowrap;">${escapeHtml(item.lineTotalLabel || item.priceLabel || "по запросу")}</td>
 			</tr>`
 		))
 		.join("");
 
-	return `
-		<div style="font-family:Arial,sans-serif;color:#111827;line-height:1.45;">
-			<h1 style="margin:0 0 16px;font-size:22px;">Новый заказ ${escapeHtml(order.orderId)}</h1>
-			<h2 style="margin:24px 0 8px;font-size:16px;">Покупатель</h2>
-			<table cellpadding="0" cellspacing="0">${buildHtmlRows(customerLines)}</table>
-			<h2 style="margin:24px 0 8px;font-size:16px;">Доставка</h2>
-			<table cellpadding="0" cellspacing="0">${buildHtmlRows([
-				["Страна", order.delivery.country],
-				["Регион", order.delivery.region],
-				["Город", order.delivery.city],
-			])}</table>
-			<h2 style="margin:24px 0 8px;font-size:16px;">Состав заказа</h2>
-			<table cellpadding="0" cellspacing="0" style="width:100%;border-collapse:collapse;">
-				<thead>
-					<tr style="color:#6b7280;text-align:left;">
-						<th style="padding:8px;">#</th>
-						<th style="padding:8px;">Товар</th>
-						<th style="padding:8px;text-align:center;">Кол-во</th>
-						<th style="padding:8px;text-align:right;">Цена</th>
-						<th style="padding:8px;text-align:right;">Сумма</th>
-					</tr>
-				</thead>
-				<tbody>${items}</tbody>
+	return `<!doctype html>
+	<html lang="ru">
+		<head>
+			<meta charset="utf-8">
+			<meta name="viewport" content="width=device-width, initial-scale=1">
+			<meta name="color-scheme" content="light">
+			<title>Новый заказ ${escapeHtml(order.orderId)}</title>
+		</head>
+		<body style="margin:0;padding:0;background:#f5f5f7;color:#161617;">
+			<div style="display:none;max-height:0;overflow:hidden;opacity:0;color:transparent;">${escapeHtml(preheader)}</div>
+			<table role="presentation" cellpadding="0" cellspacing="0" style="width:100%;border-collapse:collapse;background:#f5f5f7;">
+				<tr>
+					<td align="center" style="padding:28px 12px;">
+						<table role="presentation" cellpadding="0" cellspacing="0" style="width:100%;max-width:760px;border-collapse:collapse;font-family:-apple-system,BlinkMacSystemFont,'SF Pro Display','SF Pro Text','Segoe UI',Arial,sans-serif;">
+							<tr>
+								<td style="padding:0 0 14px;">
+									<table role="presentation" cellpadding="0" cellspacing="0" style="width:100%;border-collapse:separate;border-spacing:0;background:#ffffff;border:1px solid #e8e8ed;border-radius:999px;">
+										<tr>
+											<td style="padding:12px 18px;">
+												<table role="presentation" cellpadding="0" cellspacing="0" style="width:100%;border-collapse:collapse;">
+													<tr>
+														<td style="color:#161617;font-size:18px;font-weight:800;line-height:1;">L&amp;W</td>
+														<td align="right" style="color:#6e6e73;font-size:13px;font-weight:600;line-height:1.3;">Leppa &amp; WenSton</td>
+													</tr>
+												</table>
+											</td>
+										</tr>
+									</table>
+								</td>
+							</tr>
+
+							<tr>
+								<td style="padding:0;">
+									<table role="presentation" cellpadding="0" cellspacing="0" style="width:100%;border-collapse:separate;border-spacing:0;background:#161617;border-radius:8px;">
+										<tr>
+											<td style="padding:30px 28px;">
+												<div style="display:inline-block;margin:0 0 18px;padding:8px 12px;border:1px solid rgba(255,255,255,0.22);border-radius:999px;color:#f5f5f7;font-size:12px;font-weight:700;line-height:1;">Новая заявка с сайта</div>
+												<h1 style="margin:0;color:#ffffff;font-size:30px;font-weight:800;line-height:1.15;letter-spacing:0;">Заказ ${escapeHtml(order.orderId)}</h1>
+												<p style="margin:12px 0 0;color:#d8d8df;font-size:15px;line-height:1.5;">${escapeHtml(buyerName)} оформил заказ ${escapeHtml(formatMailDate())}. ${deliveryLabel ? `Доставка: ${escapeHtml(deliveryLabel)}.` : ""}</p>
+												<div style="margin-top:20px;">
+													<span style="display:inline-block;margin:0 6px 6px 0;padding:8px 11px;border-radius:999px;background:#ffffff;color:#161617;font-size:12px;font-weight:800;line-height:1;">${escapeHtml(buyerTypeLabel)}</span>
+													<span style="display:inline-block;margin:0 6px 6px 0;padding:8px 11px;border-radius:999px;background:rgba(255,255,255,0.12);color:#ffffff;font-size:12px;font-weight:700;line-height:1;">${order.callBack ? "Нужен звонок" : "Без обязательного звонка"}</span>
+													${order.hasRequestedPrice ? `<span style="display:inline-block;margin:0 6px 6px 0;padding:8px 11px;border-radius:999px;background:rgba(255,255,255,0.12);color:#ffffff;font-size:12px;font-weight:700;line-height:1;">Есть цена по запросу</span>` : ""}
+												</div>
+											</td>
+										</tr>
+									</table>
+								</td>
+							</tr>
+
+							<tr>
+								<td style="padding-top:14px;">
+									<table role="presentation" cellpadding="0" cellspacing="0" style="width:100%;border-collapse:collapse;">
+										<tr>
+											${buildHtmlSummaryTile("Товаров", String(order.cartCount))}
+											${buildHtmlSummaryTile("Стоимость", order.subtotalLabel || "по запросу", true)}
+											${buildHtmlSummaryTile("Перезвонить", order.callBack ? "Да" : "Нет")}
+										</tr>
+									</table>
+								</td>
+							</tr>
+
+							${buildHtmlSection(
+								"Покупатель",
+								`<table role="presentation" cellpadding="0" cellspacing="0" style="width:100%;border-collapse:collapse;">${buildHtmlRows(customerLines)}</table>
+								<div style="margin-top:13px;">
+									${buildHtmlAction(phoneHref, "Позвонить", true)}
+									${buildHtmlAction(emailHref, "Написать клиенту")}
+								</div>`,
+							)}
+
+							${buildHtmlSection(
+								"Доставка",
+								`<table role="presentation" cellpadding="0" cellspacing="0" style="width:100%;border-collapse:collapse;">${buildHtmlRows([
+									["Страна", order.delivery.country],
+									["Регион", order.delivery.region],
+									["Город", order.delivery.city],
+								])}</table>`,
+							)}
+
+							${buildHtmlSection(
+								"Состав заказа",
+								`<table role="presentation" cellpadding="0" cellspacing="0" style="width:100%;border-collapse:collapse;">
+									<thead>
+										<tr>
+											<th align="left" style="padding:0 12px 11px;color:#6e6e73;font-size:11px;font-weight:800;letter-spacing:0;text-transform:uppercase;">#</th>
+											<th align="left" style="padding:0 12px 11px;color:#6e6e73;font-size:11px;font-weight:800;letter-spacing:0;text-transform:uppercase;">Товар</th>
+											<th align="center" style="padding:0 12px 11px;color:#6e6e73;font-size:11px;font-weight:800;letter-spacing:0;text-transform:uppercase;">Кол-во</th>
+											<th align="right" style="padding:0 12px 11px;color:#6e6e73;font-size:11px;font-weight:800;letter-spacing:0;text-transform:uppercase;">Цена</th>
+											<th align="right" style="padding:0 12px 11px;color:#6e6e73;font-size:11px;font-weight:800;letter-spacing:0;text-transform:uppercase;">Сумма</th>
+										</tr>
+									</thead>
+									<tbody>${items}</tbody>
+								</table>`,
+							)}
+
+							${order.comment ? buildHtmlSection(
+								"Комментарий",
+								`<p style="margin:0;color:#161617;font-size:14px;line-height:1.55;">${escapeHtml(order.comment).replace(/\n/g, "<br>")}</p>`,
+							) : ""}
+
+							${buildHtmlSection(
+								"Техническая информация",
+								`<table role="presentation" cellpadding="0" cellspacing="0" style="width:100%;border-collapse:collapse;">${buildHtmlRows([
+									["Номер заявки", order.orderId],
+									["Страница", pageUrl],
+									["IP", meta.ip || ""],
+									["Origin", meta.origin || ""],
+									["User-Agent", meta.userAgent || ""],
+								])}</table>
+								${buildHtmlAction(pageUrl, "Открыть страницу сайта")}`,
+							)}
+
+							<tr>
+								<td align="center" style="padding:20px 10px 0;color:#6e6e73;font-size:12px;line-height:1.5;">
+									Leppa &amp; WenSton · Премиальная сантехника, зеркала и оборудование для современных ванных комнат.
+								</td>
+							</tr>
+						</table>
+					</td>
+				</tr>
 			</table>
-			<h2 style="margin:24px 0 8px;font-size:16px;">Итоги</h2>
-			<table cellpadding="0" cellspacing="0">${buildHtmlRows([
-				["Товаров", String(order.cartCount)],
-				["Стоимость товаров", order.subtotalLabel],
-				["Есть товары с ценой по запросу", order.hasRequestedPrice ? "Да" : "Нет"],
-				["Перезвонить для подтверждения", order.callBack ? "Да" : "Нет"],
-			])}</table>
-			${order.comment ? `<h2 style="margin:24px 0 8px;font-size:16px;">Комментарий</h2><p>${escapeHtml(order.comment).replace(/\n/g, "<br>")}</p>` : ""}
-			<h2 style="margin:24px 0 8px;font-size:16px;">Техническая информация</h2>
-			<table cellpadding="0" cellspacing="0">${buildHtmlRows([
-				["Страница", order.pageUrl],
-				["IP", meta.ip || ""],
-				["Origin", meta.origin || ""],
-				["User-Agent", meta.userAgent || ""],
-			])}</table>
-		</div>
+		</body>
+	</html>
 	`;
 }
 
@@ -696,6 +883,9 @@ export default ({ strapi }) => ({
 				host: settings.host,
 				port: settings.port,
 				secure: settings.secure,
+				connectionTimeout: 10000,
+				greetingTimeout: 10000,
+				socketTimeout: 15000,
 			};
 
 			if (settings.user && settings.pass) {
