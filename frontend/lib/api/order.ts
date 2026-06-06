@@ -51,23 +51,6 @@ type SubmitOrderResult = {
 	mode?: "email" | "email_failed" | "mock" | "saved";
 };
 
-const DEFAULT_STRAPI_API_URL = "https://humble-trust-72330340a8.strapiapp.com";
-
-function normalizeApiUrl(value: string | undefined): string | null {
-	const normalizedValue = value?.trim().replace(/\/+$/, "");
-
-	if (!normalizedValue || normalizedValue.includes("api.example.com")) {
-		return null;
-	}
-
-	return normalizedValue;
-}
-
-const API_URL =
-	normalizeApiUrl(process.env.NEXT_PUBLIC_API_URL)
-	?? normalizeApiUrl(process.env.NEXT_PUBLIC_STRAPI_URL)
-	?? DEFAULT_STRAPI_API_URL;
-
 function isRecord(value: unknown): value is Record<string, unknown> {
 	return typeof value === "object" && value !== null && !Array.isArray(value);
 }
@@ -115,17 +98,20 @@ export function mapCartLinesToOrderItems(
 export async function submitCheckoutOrder(
 	payload: CheckoutOrderPayload,
 ): Promise<SubmitOrderResult> {
-	if (!API_URL) {
-		throw new Error("URL API не настроен.");
+	let response: Response;
+
+	try {
+		response = await fetch("/api/orders/submit", {
+			method: "POST",
+			headers: {
+				"Content-Type": "application/json",
+			},
+			body: JSON.stringify({ data: payload }),
+		});
+	} catch {
+		throw new Error("Не удалось подключиться к серверу заказов.");
 	}
 
-	const response = await fetch(`${API_URL}/api/orders/submit`, {
-		method: "POST",
-		headers: {
-			"Content-Type": "application/json",
-		},
-		body: JSON.stringify({ data: payload }),
-	});
 	const data = await readJsonResponse(response);
 
 	if (!response.ok) {

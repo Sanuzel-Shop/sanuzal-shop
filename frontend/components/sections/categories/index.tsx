@@ -25,7 +25,7 @@ export async function CategoriesSection() {
 			id="categories"
 			aria-labelledby="categories-title"
 			className="bg-canvas text-ink">
-			<div className="mx-auto w-full max-w-6xl px-5 py-16 sm:px-8 sm:py-20 lg:px-14 lg:py-24">
+			<div className="mx-auto w-full max-w-6xl px-5 pb-10 pt-16 sm:px-8 sm:pb-12 sm:pt-20 lg:px-14 lg:pb-14 lg:pt-24">
 				<div className="mx-auto max-w-2xl text-center">
 					<h2
 						id="categories-title"

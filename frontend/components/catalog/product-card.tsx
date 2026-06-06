@@ -214,6 +214,7 @@ export function ProductCard({
 			)}>
 			<Link
 				href={href}
+				scroll={false}
 				aria-label={`Открыть товар ${product.name}`}
 				className="absolute inset-0 z-0 rounded-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
 			/>

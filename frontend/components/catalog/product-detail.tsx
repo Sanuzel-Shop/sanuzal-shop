@@ -2,10 +2,12 @@ import Link from "next/link";
 import { MessageCircle } from "lucide-react";
 
 import { StorefrontBreadcrumbs } from "@/components/catalog/breadcrumbs";
+import { ProductBackButton } from "@/components/catalog/product-back-button";
 import { ProductAvailabilityBadge } from "@/components/catalog/product-availability-badge";
 import { ProductSkuCopy } from "@/components/catalog/product-sku-copy";
 import { ProductGallery } from "@/components/catalog/product-gallery";
 import { ProductInfoTabs } from "@/components/catalog/product-info-tabs";
+import { ProductScrollToTop } from "@/components/catalog/product-scroll-to-top";
 import { Button } from "@/components/ui/button";
 import { ProductActions } from "@/components/shop/product-actions";
 import {
@@ -26,6 +28,7 @@ export function ProductDetail({
 }) {
 	const galleryFallbackAlt = getProductImageAlt(product);
 	const shopProduct = getShopProductSnapshot(product, category);
+	const categoryHref = getCategoryHref(category);
 	const intro = product.description
 		.split(/\n{2,}/)
 		.at(-1)
@@ -33,15 +36,22 @@ export function ProductDetail({
 
 	return (
 		<article className="bg-canvas text-ink">
+			<ProductScrollToTop />
+
 			<div className="mx-auto w-full max-w-7xl px-5 pb-16 pt-32 sm:px-8 sm:pb-20 sm:pt-36 lg:px-10 lg:pb-24 lg:pt-40">
-				<StorefrontBreadcrumbs
-					items={[
-						{ label: "Главная", href: "/" },
-						{ label: "Каталог", href: "/catalog" },
-						{ label: category.name, href: getCategoryHref(category) },
-						{ label: product.name },
-					]}
-				/>
+				<div className="flex min-w-0 items-center gap-5">
+					<ProductBackButton fallbackHref={categoryHref} />
+
+					<StorefrontBreadcrumbs
+						className="min-w-0 flex-1"
+						items={[
+							{ label: "Главная", href: "/" },
+							{ label: "Каталог", href: "/catalog" },
+							{ label: category.name, href: categoryHref },
+							{ label: product.name },
+						]}
+					/>
+				</div>
 
 				<div className="mt-8 grid gap-10 lg:grid-cols-[minmax(0,1.08fr)_minmax(360px,0.92fr)] lg:items-start">
 					<ProductGallery

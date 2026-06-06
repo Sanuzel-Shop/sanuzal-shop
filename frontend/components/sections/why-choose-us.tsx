@@ -60,7 +60,7 @@ export function WhyChooseUsSection() {
 			id="why-choose-us"
 			aria-labelledby="why-choose-us-title"
 			className="bg-frost text-ink">
-			<div className="mx-auto w-full max-w-6xl px-5 py-16 sm:px-8 sm:py-20 lg:px-14 lg:py-24">
+			<div className="mx-auto w-full max-w-6xl px-5 pb-10 pt-14 sm:px-8 sm:pb-12 sm:pt-16 lg:px-14 lg:pb-14 lg:pt-20">
 				<div className="mx-auto max-w-3xl text-center">
 					<h2 className="text-3xl font-semibold text-ink sm:text-4xl lg:text-6xl">
 						Почему выбирают нас

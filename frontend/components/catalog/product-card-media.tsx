@@ -102,13 +102,13 @@ export function ProductCardMedia({
 				}
 				// Standard click routing (ignoring heavy drag selections)
 				if (isDraggingRef.current) {
-					router.push(href);
+					router.push(href, { scroll: false });
 				}
 				isDraggingRef.current = false;
 			}}
 			onClick={() => {
 				// Fallback navigation handler
-				router.push(href);
+				router.push(href, { scroll: false });
 			}}
 			role="link"
 			aria-label="Открыть товар"
@@ -116,7 +116,7 @@ export function ProductCardMedia({
 			onKeyDown={(event) => {
 				if (event.key === "Enter" || event.key === " ") {
 					event.preventDefault();
-					router.push(href);
+					router.push(href, { scroll: false });
 				}
 			}}>
 			<FilledImage

@@ -8,9 +8,9 @@ export function HomePage() {
 	return (
 		<section className='relative flex min-h-dvh w-full flex-1 flex-col bg-canvas text-ink'>
 			<Hero />
+			<CategoriesSection />
 			<AboutUsSection />
 			<WhyChooseUsSection />
-			<CategoriesSection />
 			<ContactCtaSection />
 		</section>
 	);

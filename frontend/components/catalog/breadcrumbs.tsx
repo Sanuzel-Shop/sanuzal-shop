@@ -18,11 +18,11 @@ export function StorefrontBreadcrumbs({
 	return (
 		<nav
 			aria-label="Хлебные крошки"
-			className={cn("min-w-0 text-sm text-ink-muted", className)}>
+			className={cn("min-w-0 overflow-hidden text-sm text-ink-muted", className)}>
 			<ol
 				itemScope
 				itemType="https://schema.org/BreadcrumbList"
-				className="flex min-w-0 flex-wrap items-center gap-2">
+				className="flex min-w-0 items-center gap-2 overflow-hidden whitespace-nowrap">
 				{items.map((item, index) => {
 					const isLast = index === items.length - 1;
 
@@ -32,7 +32,10 @@ export function StorefrontBreadcrumbs({
 							itemProp="itemListElement"
 							itemScope
 							itemType="https://schema.org/ListItem"
-							className="flex min-w-0 items-center gap-2">
+							className={cn(
+								"flex items-center gap-2 overflow-hidden",
+								isLast ? "min-w-0 flex-1" : "shrink-0",
+							)}>
 							{index > 0 ? (
 								<ChevronRight
 									aria-hidden="true"
@@ -45,7 +48,7 @@ export function StorefrontBreadcrumbs({
 								<Link
 									href={item.href}
 									itemProp="item"
-									className="font-medium text-ink-muted hover:text-ink">
+									className="block font-medium text-ink-muted hover:text-ink">
 									<span itemProp="name">{item.label}</span>
 								</Link>
 							) : (

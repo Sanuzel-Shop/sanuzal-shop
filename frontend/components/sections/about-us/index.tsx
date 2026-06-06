@@ -139,7 +139,7 @@ export function AboutUsSection() {
 			id="about"
 			aria-labelledby="about-title"
 			className="relative bg-canvas text-ink">
-			<div className="relative border-y border-hairline bg-canvas px-5 py-16 sm:px-8 sm:py-20 lg:px-14 lg:py-24 md:flex md:min-h-[calc(100vh-200px)] md:items-center md:overflow-hidden">
+			<div className="relative border-y border-hairline bg-canvas px-5 py-14 sm:px-8 sm:py-16 lg:px-14 lg:py-20 md:overflow-hidden">
 				<AboutDesktopSlider
 					activeIndex={activeIndex}
 					activeSubsection={activeSubsection}
