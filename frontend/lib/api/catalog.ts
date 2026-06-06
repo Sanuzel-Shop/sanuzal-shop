@@ -26,13 +26,26 @@ import type {
 
 type PlainRecord = Record<string, unknown>;
 
-const STRAPI_API_URL = process.env.NEXT_PUBLIC_API_URL?.replace(/\/+$/, "");
+const STRAPI_API_URL = (
+	process.env.NEXT_PUBLIC_API_URL ?? process.env.NEXT_PUBLIC_STRAPI_URL
+)?.replace(/\/+$/, "");
 const STRAPI_API_TOKEN = process.env.STRAPI_API_TOKEN?.trim() || null;
 const STRAPI_PAGE_SIZE = 100;
 const STRAPI_MAX_PAGES = 100;
+const DEBUG_CATEGORIES =
+	process.env.DEBUG_CATEGORIES === "true"
+	|| process.env.NEXT_PUBLIC_DEBUG_CATEGORIES === "true";
 
 function isRecord(value: unknown): value is PlainRecord {
 	return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+
+function logCategoriesDebug(label: string, value: unknown) {
+	if (!DEBUG_CATEGORIES) {
+		return;
+	}
+
+	console.log(`[categories] ${label}`, value);
 }
 
 function getString(value: unknown): string | null {
@@ -418,6 +431,12 @@ async function fetchStrapiCollection(
 	const firstUrl = getStrapiApiUrl(pathname);
 
 	if (!firstUrl) {
+		logCategoriesDebug(`${pathname} skipped`, {
+			reason: "Strapi API URL is not configured",
+			hasNextPublicApiUrl: Boolean(process.env.NEXT_PUBLIC_API_URL),
+			hasNextPublicStrapiUrl: Boolean(process.env.NEXT_PUBLIC_STRAPI_URL),
+		});
+
 		return [];
 	}
 
@@ -436,7 +455,11 @@ async function fetchStrapiCollection(
 		url.searchParams.set("pagination[page]", String(page));
 		url.searchParams.set("pagination[pageSize]", String(STRAPI_PAGE_SIZE));
 
+		logCategoriesDebug(`${pathname} request URL`, url.toString());
+
 		const payload = await fetchStrapiJson(url, pathname);
+		logCategoriesDebug(`${pathname} API response`, payload);
+
 		if (!payload) {
 			return entries;
 		}
@@ -530,10 +553,14 @@ async function fetchStrapiCategories(): Promise<Category[]> {
 		url.searchParams.set("populate[image]", "true");
 		url.searchParams.set("sort", "name:asc");
 	});
+	logCategoriesDebug("categories raw entries", entries);
 
-	return entries
+	const categories = entries
 		.map(mapStrapiCategory)
 		.filter((category): category is Category => category !== null);
+	logCategoriesDebug("categories normalized data", categories);
+
+	return categories;
 }
 
 async function fetchStrapiProducts(): Promise<Product[]> {
@@ -561,7 +588,10 @@ function normalizeCatalogQuery(query: CatalogQuery): CatalogResult["query"] {
 }
 
 export async function getCategories(): Promise<Category[]> {
-	return fetchStrapiCategories();
+	const categories = await fetchStrapiCategories();
+	logCategoriesDebug("getCategories result", categories);
+
+	return categories;
 }
 
 export async function getFooterCategories(): Promise<CategoryLink[]> {

@@ -44,6 +44,11 @@ const nextConfig: NextConfig = {
 				hostname: "yadi.sk",
 				pathname: "/**",
 			},
+			{
+				protocol: "https",
+				hostname: "humble-trust-72330340a8.media.strapiapp.com",
+				pathname: "/**",
+			},
 		],
 	},
 };

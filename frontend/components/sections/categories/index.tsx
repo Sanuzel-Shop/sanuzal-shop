@@ -4,9 +4,21 @@ import { CategoryCard } from "./category-card";
 import { CategoryState } from "./category-state";
 import { getCategoryGridClassName } from "./category-layout";
 
+const DEBUG_CATEGORIES =
+	process.env.DEBUG_CATEGORIES === "true"
+	|| process.env.NEXT_PUBLIC_DEBUG_CATEGORIES === "true";
+
 export async function CategoriesSection() {
 	const visibleCategories = await getCategories();
 	const categoryCount = visibleCategories.length;
+
+	if (DEBUG_CATEGORIES) {
+		console.log("[categories] data before render", {
+			categoryCount,
+			visibleCategories,
+		});
+		console.log("[categories] final categories", visibleCategories);
+	}
 
 	return (
 		<section
